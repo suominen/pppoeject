@@ -1,0 +1,24 @@
+# Claude Code — local/personal settings only (shared settings.json is tracked)
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# direnv cache
+.direnv/
+
+# Nix build outputs
+result
+result-*
+
+# Hugo build artifacts
+.hugo_build.lock
+site/_vendor/
+site/public/
+site/resources/
+
+# Python (make check compiles tests/ into bytecode)
+__pycache__/
+*.pyc
+
+# Editor / OS
+*~
+.DS_Store

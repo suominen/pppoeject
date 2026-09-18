@@ -1,0 +1,10 @@
+[Unit]
+Description=Run PPPoEject tracker update twice daily
+
+[Timer]
+OnCalendar=*-*-* 06,18:50:00
+Persistent=true
+RandomizedDelaySec=2m
+
+[Install]
+WantedBy=timers.target
