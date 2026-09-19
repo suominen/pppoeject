@@ -36,10 +36,11 @@ cover:
 > carry it, all seven tracked NixOS refs have rebased onto the fixed 6.18
 > build, and all three Amazon Linux 2023 kernel streams have shipped it.
 > **Proxmox VE 8 and 9 and the Rocky Linux / RHEL family are still
-> vulnerable** at the time of writing — Red Hat has marked RHEL 8
-> **"Will not fix"** and has no fix yet for RHEL 9 or 10. Treat any host
-> where an unprivileged user or a container can reach `CAP_NET_ADMIN` in
-> a namespace as directly exposed, and apply the mitigations below until a
+> vulnerable** at the time of writing — Red Hat has no fix yet for RHEL 8,
+> 9, or 10 (only the niche RHEL 8 `kernel-rt` package is marked
+> **"Will not fix"**). Treat any host where an unprivileged user or a
+> container can reach `CAP_NET_ADMIN` in a namespace as directly exposed,
+> and apply the mitigations below until a
 > patched kernel is available.
 
 ## How the exploitation chain works
@@ -140,9 +141,9 @@ until a row is fixed.
 | NixOS | Unstable (nixpkgs) | 6.18.52 | 6.18.42 | 2026-08-08 | :white_check_mark: Fixed |
 | NixOS | 26.05 | 6.18.52 | 6.18.42 | 2026-08-05 | :white_check_mark: Fixed |
 | NixOS | 26.05 (small) | 6.18.52 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
-| Rocky Linux / RHEL | 10 | 6.12.0-211.55.1.el10_2 | — | — | :x: Vulnerable — no RHSA yet |
-| Rocky Linux / RHEL | 9 | 5.14.0-687.48.1.el9_8 | — | — | :x: Vulnerable — no RHSA yet |
-| Rocky Linux / RHEL | 8 | 4.18.0-553.163.1.el8_10 | — | — | :x: Vulnerable — RHEL won't fix |
+| Rocky Linux / RHEL | 10 | 6.12.0-211.56.1.el10_2.0.1 | — | — | :x: Vulnerable — no RHSA yet |
+| Rocky Linux / RHEL | 9 | 5.14.0-687.49.1.el9_8 | — | — | :x: Vulnerable — no RHSA yet |
+| Rocky Linux / RHEL | 8 | 4.18.0-553.164.1.el8_10 | — | — | :x: Vulnerable — no RHSA yet |
 | Amazon Linux | 2023 (default) | 6.1.186-228.376 | 6.1.186-228.374 | 2026-09-14 | :white_check_mark: Fixed — ALAS2023-2026-2143 |
 | Amazon Linux | 2023 (6.12 opt-in) | 6.12.103-129.197 | 6.12.103-127.188 | 2026-08-31 | :white_check_mark: Fixed — ALAS2023-2026-2110 |
 | Amazon Linux | 2023 (6.18 opt-in) | 6.18.48-109.150 | 6.18.44-99.149 | 2026-08-31 | :white_check_mark: Fixed — ALAS2023-2026-2106 |
@@ -234,20 +235,22 @@ fixed 6.18 build.
 
 RHEL-family kernels are long-lived forks that carry the vulnerable PPPoE
 code. Red Hat's CVE record (CSAF/VEX, initial release 2026-08-10) marks
-**RHEL 8, 9, and 10 affected** and ships **no fix**: RHEL 8 is flagged
-**"Will not fix,"** and RHEL 9 and 10 have no fix available and no RHSA.
-So every in-support EL stream is **vulnerable**. Red Hat rates the flaw
-**Moderate**, scoring the integrity impact lower than the demonstrated
-local-root exploit (`I:L` versus the CNA's `I:H`). Rocky rebuilds RHEL
-unchanged, so its status tracks Red Hat's; AlmaLinux (typically the
-fastest rebuild) has published no erratum either. Oracle Linux and
-CloudLinux track the RHEL determination.
+**RHEL 8, 9, and 10 affected** and ships **no fix** for the base kernel
+package on any of them — no RHSA yet. So every in-support EL stream is
+**vulnerable**. Red Hat rates the flaw **Moderate**, scoring the integrity
+impact lower than the demonstrated local-root exploit (`I:L` versus the
+CNA's `I:H`). Rocky rebuilds RHEL unchanged, so its status tracks Red
+Hat's; AlmaLinux (typically the fastest rebuild) has published no erratum
+either. Oracle Linux and CloudLinux track the RHEL determination.
 
 Unlike some kernel CVEs, this bug has **no not-affected EL base**: the
 flaw predates git history, so even EL8's 4.18 kernel is in-window. The
-niche `kernel-rt` real-time kernel shares the base kernel's exposure.
-Because Red Hat has no fix for the in-support streams, the practical
-response on EL hosts is the mitigations below.
+niche `kernel-rt` real-time kernel shares the base kernel's exposure —
+RHEL 8's `kernel-rt` is the one package Red Hat has explicitly flagged
+**"Will not fix,"** while the base kernel it shares its source with
+remains open (no fix planned yet, but not ruled out). Because Red Hat has
+no fix for any in-support stream's base kernel, the practical response on
+EL hosts is the mitigations below.
 
 ### Amazon Linux
 
@@ -388,9 +391,10 @@ reachable surface but leaves a trusted-but-hostile caller in scope.
   Amazon Linux 2023 have adopted it, but both Proxmox VE releases and the
   Rocky Linux / RHEL family are still vulnerable. Check the *First fixed*
   column, not the kernel's age.
-- **Red Hat has no fix for the in-support streams.** RHEL 8 is marked
-  "Will not fix" and RHEL 9 and 10 have no RHSA, so EL hosts should rely on
-  the mitigations rather than waiting for an erratum.
+- **Red Hat has no fix for the in-support streams.** RHEL 8, 9, and 10 all
+  have no RHSA for the base kernel (only RHEL 8's niche `kernel-rt` is
+  marked "Will not fix"), so EL hosts should rely on the mitigations rather
+  than waiting for an erratum.
 - **Part of a set of four.** PPPoEject was disclosed alongside
   [DirtyAH6](https://kimmo.cloud/dirtyah6/),
   [TUNderflow](https://kimmo.cloud/tunderflow/), and
@@ -453,13 +457,13 @@ readers never need it.
   socket, not remote reception; `PR:L` because a PPPoE socket needs no
   privilege and the team/GRE topology is reachable with `CAP_NET_ADMIN`
   in an unprivileged user namespace.
-- **Red Hat** (CSAF/VEX, initial release 2026-08-10, current 2026-08-21):
-  CVSS 3.1 **7.3 HIGH** (`AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:H`), impact
-  **Moderate** — the same local vantage, scoring integrity `I:L` rather
-  than the CNA's `I:H`. Base-`kernel` remediation is `no_fix_planned`
-  ("Will not fix") for RHEL 8 and `none_available` ("Affected") for RHEL 9
-  and 10; RHEL 6/7 appear as `known_affected` too (no not-affected EL
-  base). No `vendor_fix` / RHSA for any stream.
+- **Red Hat** (CSAF/VEX, initial release 2026-08-10, current revision 3 /
+  2026-09-18): CVSS 3.1 **7.3 HIGH** (`AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:H`),
+  impact **Moderate** — the same local vantage, scoring integrity `I:L`
+  rather than the CNA's `I:H`. Base-`kernel` remediation is
+  `none_available` ("Affected") for RHEL 6/7/8/9/10 (no not-affected EL
+  base); only RHEL 8's niche `kernel-rt` carries `no_fix_planned` ("Will
+  not fix"). No `vendor_fix` / RHSA for any stream.
 - **NVD / EPSS / KEV**: NVD record status *Received* (its CVSS 3.1 mirrors
   the CNA score rather than an independent assessment); no CWE assigned.
   EPSS **~0.14%** (~4th percentile, via api.first.org); not in CISA KEV.
@@ -521,10 +525,13 @@ readers never need it.
   channels via their `git-revision` pins).
 - **Rocky / RHEL family**: Red Hat's CSAF/VEX record
   (`security.access.redhat.com/data/csaf/v2/vex/2026/cve-2026-68121.json`,
-  initial release 2026-08-10) marks RHEL 6/7/8/9/10 `known_affected` with
-  remediation `no_fix_planned` ("Will not fix") for RHEL 8 and
-  `none_available` ("Affected") for RHEL 6/7/9/10 — no `vendor_fix`, no
-  RHSA. The Rocky rows' *Current kernel* NVRs are read from BaseOS
+  current revision 3 / 2026-09-18) marks RHEL 6/7/8/9/10 `known_affected`
+  with remediation `none_available` ("Affected") for the base `kernel`
+  package on every one of them — no `vendor_fix`, no RHSA. Only RHEL 8's
+  niche `kernel-rt` package carries `no_fix_planned` ("Will not fix"); the
+  initial 2026-08-10 release had applied that same "Will not fix" to RHEL
+  8's base kernel too, narrowed to just `kernel-rt` by revision 3. The
+  Rocky rows' *Current kernel* NVRs are read from BaseOS
   repodata (`primary.xml.gz`, highest `rel`). No AlmaLinux erratum (OSV,
   errata.json).
 - **Amazon Linux** (AL2023 `updateinfo.xml.gz` / `primary.xml.gz`,
