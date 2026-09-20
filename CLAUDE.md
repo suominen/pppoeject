@@ -235,11 +235,13 @@ ships a new stream.  **AL2 has no rows**: it reached end of support on
 2026-06-30, before this tracker existed — cover it in one sentence of the
 `### Amazon Linux` prose; don't poll AL2 repodata or re-add AL2 rows.
 
-Debian suites get one row for the **default** `linux` kernel.  The
-bookworm `linux-6.12` and bullseye `linux-6.1` opt-in kernels rebuild the
-same still-unpatched source lines and have no separate security-tracker
-entry, so at seed they are covered in `### Debian` prose rather than as
-their own rows; add a row if one gains a distinct verdict.  The same
+Debian suites get one row for the **default** `linux` kernel and, where
+one exists, a separate row per opt-in alternative kernel that ships as
+its own source package (a `linux-6.x` rebuild of a newer suite's kernel
+for an older suite, as row `12 (6.x opt-in)`); none is tracked at seed.
+The `-backports` rebuild of the newer suite's `linux` source belongs in
+the `### Debian` prose instead.  **bullseye** (Debian 11) left security
+support on 2026-08-31 and gets **no rows** — don't poll it.  The same
 default-plus-variant row pattern applies to Proxmox (`proxmox-kernel-*`
 series): a default row is labelled plain `9 (default)` — its series is
 visible in *Current kernel* and named in the prose — and a former default
@@ -755,7 +757,13 @@ sources to Ubuntu-*` base from the changelog and compare it against
 Ubuntu's fixed version for that series in the Ubuntu CVE tracker
 (`https://ubuntu.com/security/cves/CVE-2026-68121.json` — the
 `packages[].statuses[]` entries; `released` + version).  Base ≥ Ubuntu's
-fixed version ⇒ the PVE build carries the fix.  At seed Ubuntu marks
+fixed version ⇒ the PVE build carries the fix.  Prove it rather than
+trusting the version compare: the Ubuntu build's changelog at
+`https://changelogs.ubuntu.com/changelogs/pool/main/l/linux/linux_<ver>/changelog`
+lists every upstream stable subject it pulled in, so grep it for
+`reload header pointer after dev_hard_header` (Launchpad's git `plain`
+file URLs return 403 headlessly, so the source itself cannot be read
+that way).  At seed Ubuntu marks
 resolute (the 7.0 base) *pending* `7.0.0-38.38` — named but not released —
 and noble (a 6.8 base) *needed*, so neither PVE default carries the fix;
 a *pending* fix is not a released one, so PVE 9 stays `:x:` until the
@@ -820,6 +828,53 @@ accumulate every point release's kernel, so pick the numerically-highest
   `5.14.0-687.48.1.el9_8`, Rocky 10 `6.12.0-211.55.1.el10_2` — all
   affected, no RLSA.  Every EL base is in-window (the flaw predates git
   history), so never mark an EL row not-affected on version.
+
+  When an RHSA names a fixed NVR, expect Rocky to **skip the exact RHEL
+  NVR** and publish the next build instead, so *First fixed* is the first
+  Rocky build past the RHSA NVR, not the RHSA NVR.  For *Fixed since* use
+  that build's upload date from the mirror directory listing
+  `https://dl.rockylinux.org/pub/rocky/<N>/BaseOS/x86_64/os/Packages/k/`:
+  Rocky's own `updateinfo.xml` may name no advisory for the CVE at all,
+  and the errata API (`apollo.build.resf.org/api/v3/advisories/`) ignores
+  its `?cve=` / `?search=` filters and returns the newest advisories
+  whatever is asked, so neither is a usable date source.  OSV lists the
+  ALSA when AlmaLinux ships first.
+
+  **Positive changelog cross-check (gated).**  Red Hat rates this CVE
+  Moderate impact and may defer the fix for months, so the VEX can stay
+  `none_available` while the shipped kernel is what actually matters —
+  the backport lands in the kernel RPM `%changelog` before, or without,
+  a `vendor_fix` ever appearing, so don't rely on the VEX alone for the
+  flip.  **Guardrail:** *Current kernel* is pulled from `primary.xml.gz`
+  every run anyway; run this extra check **only when that version
+  actually moved for a row still `:x:` / `:warning:`** — never on a
+  no-op run, and never for an already-Fixed row.  `other.xml.gz` is a
+  large fetch, so gating it on a real version change for an unfixed row
+  keeps it off the many quiet runs.  When the gate opens, pull the BaseOS
+  `*-other.xml.gz` (resolve its href from `repomd.xml`, same as
+  `primary.xml.gz`) and count the CVE id in it:
+
+  ```
+  curl -fsSL "${base}repodata/<hash>-other.xml.gz" | zcat | grep -c CVE-2026-68121
+  ```
+
+  On a nonzero count, confirm the hit sits in a `kernel` `%changelog`
+  entry before acting on it: `other.xml.gz` carries every package's
+  changelog on one stream, and it packs entries onto shared physical
+  lines (see the Amazon note below), so attribute the hit with an XML
+  parse rather than a line-context grep — headlessly, where no XML
+  parser is allowlisted, record the raw hit in the commit message for
+  manual confirmation instead of flipping on the count.  A confirmed hit
+  means the backport is in the shipped binary: flip the row to Fixed even
+  if the VEX still says `none_available`, set *First fixed* to the first
+  Rocky build carrying it, and *Fixed since* to that build's upload date
+  (the `Packages/k/` listing above).  A **miss is not proof of absence**:
+  repodata keeps only the ~10 newest changelog entries per build, so a
+  fix that shipped in an older build and scrolled off the tail won't show
+  here — but such a fix is already reflected in the VEX `vendor_fix` / an
+  RHSA, so the two signals cover each other.  Treat the changelog grep as
+  the positive early-detector and the VEX as the backstop; neither alone
+  is sufficient.
 - **Amazon Linux**: the machine-readable ALAS signal is the repodata
   **`updateinfo.xml.gz`** (per-CVE ALAS HTML is JS-rendered, empty
   headlessly).  Resolve the mirror, fetch `<base>repodata/updateinfo.xml.gz`
@@ -891,7 +946,7 @@ the dak madison API only for the base-suite version and the sid/testing
 lineage:
 
 ```
-curl -fsSL 'https://api.ftp-master.debian.org/madison?package=linux&s=sid,forky,trixie,bookworm,bullseye&text=on'
+curl -fsSL 'https://api.ftp-master.debian.org/madison?package=linux&s=sid,forky,trixie,bookworm&text=on'
 ```
 
 For a *Fixed since* date, use the `first_seen` of the fixed version in
