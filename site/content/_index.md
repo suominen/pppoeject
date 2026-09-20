@@ -3,7 +3,7 @@ title: "PPPoEject (CVE-2026-68121) — Linux PPPoE sendmsg use-after-free"
 description: "Linux kernel PPPoE sendmsg stale skb-head use-after-free (CVE-2026-68121, PPPoEject) — an unprivileged local user escalates to root through a device-header-callback skb reallocation, with a public exploit — distro patch status tracker"
 layout: "single"
 date: 2026-09-18
-lastmod: 2026-09-19
+lastmod: 2026-09-20
 cover:
   image: "pppoeject-tracker.png"
   alt: "PPPoEject — Linux kernel PPPoE sendmsg stale skb-head use-after-free tracker"
@@ -503,10 +503,13 @@ readers never need it.
   builds are read from pve-no-subscription `Packages.gz`.
   - PVE 9: the newest published build (`7.0.14-17`) rebased onto
     Ubuntu-7.0.0-38.38 (`origin/master` changelog); its `debian/changelog`
-    names no PPPoE cherry-pick, and Ubuntu lists resolute's `7.0.0-38.38`
-    as *pending* (not released), so the fix is not confirmed present.
-    Vulnerable pending an Ubuntu release marked *released* or a named
-    cherry-pick.
+    names no PPPoE cherry-pick of its own. Ubuntu's own packaging
+    changelog for `7.0.0-38.38` (changelogs.ubuntu.com) does carry the fix
+    — it lists `CVE-2026-68121` with the `pppoe: reload header pointer
+    after dev_hard_header()` subject — but Ubuntu's CVE tracker still
+    marks resolute's `7.0.0-38.38` *pending*, i.e. not yet released to the
+    archive. Vulnerable until Ubuntu marks that build *released* (PVE has
+    already rebased onto its source) or PVE names its own cherry-pick.
   - PVE 8: `origin/bookworm-6.8`'s changelog through `6.8.12-43` names no
     PPPoE cherry-pick, no `pppoe` patch appears in `patches/kernel/`, and
     Ubuntu marks the 6.8 (noble) kernel *needed*, so neither path has
