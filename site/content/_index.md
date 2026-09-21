@@ -3,7 +3,7 @@ title: "PPPoEject (CVE-2026-68121) — Linux PPPoE sendmsg use-after-free"
 description: "Linux kernel PPPoE sendmsg stale skb-head use-after-free (CVE-2026-68121, PPPoEject) — an unprivileged local user escalates to root through a device-header-callback skb reallocation, with a public exploit — distro patch status tracker"
 layout: "single"
 date: 2026-09-18
-lastmod: 2026-09-20
+lastmod: 2026-09-21
 cover:
   image: "pppoeject-tracker.png"
   alt: "PPPoEject — Linux kernel PPPoE sendmsg stale skb-head use-after-free tracker"
@@ -119,7 +119,7 @@ until a row is fixed.
 
 | Distribution | Release | Current kernel | First fixed | Fixed since | Status |
 |---|---|---|---|---|---|
-| Linux kernel | mainline | 7.3-rc3 | 7.2-rc5 | 2026-07-26 | :white_check_mark: Fixed — carries `e9c238f6fe42` |
+| Linux kernel | mainline | 7.3-rc4 | 7.2-rc5 | 2026-07-26 | :white_check_mark: Fixed — carries `e9c238f6fe42` |
 | Linux kernel | 7.2.x | 7.2.6 | 7.2 | 2026-08-16 | :white_check_mark: Fixed |
 | Linux kernel | 7.1.x | 7.1.13 (EOL) | 7.1.6 | 2026-08-03 | :white_check_mark: Fixed |
 | Linux kernel | 6.18.x | 6.18.52 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
