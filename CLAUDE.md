@@ -247,6 +247,11 @@ series): a default row is labelled plain `9 (default)` — its series is
 visible in *Current kernel* and named in the prose — and a former default
 or an opt-in overtaken by a newer one is labelled `old` (`9 (6.17 old)`).
 Keep an `old` row (hosts still run it), but expect no more updates for it.
+**PVE 8 gets no rows**: it reached end of life in 2026-08 with no
+further kernel updates, so — like any release that was already EOL
+with no fix expected before the tracker existed — it is covered in a
+short paragraph of the `### Proxmox VE` prose; don't poll the bookworm
+`pve-no-subscription` index or the `bookworm-*` changelog branches.
 A release, stream, or kernel series that was **dead before the tracker
 existed** and died *without* the fix gets **no** row at all — its
 permanent `:x:` is one sentence in the relevant `###` prose.  Niche
@@ -736,19 +741,19 @@ is in the headless allowlist.*
 Proxmox ships its **own** Ubuntu-derived kernel (`proxmox-kernel-*`) with a
 Debian userland, so the Debian madison feed does not cover it.  Pull the
 kernel version from the `pve-no-subscription` `Packages` index.  VE 9 is
-trixie-based, VE 8 bookworm-based:
+trixie-based (VE 8, bookworm-based, is EOL and untracked):
 
 ```
-url=http://download.proxmox.com/debian/pve/dists/<trixie|bookworm>/pve-no-subscription/binary-amd64/Packages.gz
+url=http://download.proxmox.com/debian/pve/dists/trixie/pve-no-subscription/binary-amd64/Packages.gz
 curl -fsSL "$url" | zcat | grep -A3 '^Package: proxmox-default-kernel'
 ```
 
 The default kernel *series* is whatever the highest-versioned
 `proxmox-default-kernel` meta-package depends on — check it each time.
 Every PVE series carries the vulnerable PPPoE code and is in-window, so
-each needs the fix to be safe.  At seed **both** maintained series are
-unpatched: `proxmox-kernel-7.0` (PVE 9, `7.0.14-17`) and
-`proxmox-kernel-6.8` (PVE 8, `6.8.12-43`).
+each needs the fix to be safe.  At seed the maintained series,
+`proxmox-kernel-7.0` (PVE 9, `7.0.14-17`), is unpatched; PVE 8 is EOL
+and untracked (see above).
 
 **Two sources — only one is authoritative for the version.** The
 *Current kernel* column is the `proxmox-kernel-<series>` build published

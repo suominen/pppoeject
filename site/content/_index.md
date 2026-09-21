@@ -3,7 +3,7 @@ title: "PPPoEject (CVE-2026-68121) — Linux PPPoE sendmsg use-after-free"
 description: "Linux kernel PPPoE sendmsg stale skb-head use-after-free (CVE-2026-68121, PPPoEject) — an unprivileged local user escalates to root through a device-header-callback skb reallocation, with a public exploit — distro patch status tracker"
 layout: "single"
 date: 2026-09-18
-lastmod: 2026-09-21
+lastmod: 2026-09-22
 cover:
   image: "pppoeject-tracker.png"
   alt: "PPPoEject — Linux kernel PPPoE sendmsg stale skb-head use-after-free tracker"
@@ -35,7 +35,7 @@ cover:
 > and 5.10). Debian's **sid**, **forky**, **trixie**, and **bookworm**
 > carry it, all seven tracked NixOS refs have rebased onto the fixed 6.18
 > build, and all three Amazon Linux 2023 kernel streams have shipped it.
-> **Proxmox VE 8 and 9 and the Rocky Linux / RHEL family are still
+> **Proxmox VE 9 and the Rocky Linux / RHEL family are still
 > vulnerable** at the time of writing — Red Hat has no fix yet for RHEL 8,
 > 9, or 10 (only the niche RHEL 8 `kernel-rt` package is marked
 > **"Will not fix"**). Treat any host where an unprivileged user or a
@@ -109,8 +109,8 @@ carries the fix (see the *Linux kernel* rows), including the **7.2.x**
 stable branch, which was cut after the fix had already landed. Debian's
 **sid**, **forky**, **trixie**, and **bookworm** have rebased onto it, all
 seven tracked NixOS refs default to the fixed 6.18 build, and all three
-Amazon Linux 2023 kernel streams have shipped it; **Proxmox VE 8 and 9**
-and the **Rocky Linux / RHEL** family remain **Vulnerable**.
+Amazon Linux 2023 kernel streams have shipped it; **Proxmox VE 9** and
+the **Rocky Linux / RHEL** family remain **Vulnerable**.
 
 The first group is the upstream kernel; the rest are a focused set of
 x86-64 distributions, with per-distribution detail in the sections that
@@ -133,7 +133,6 @@ until a row is fixed.
 | Debian | 13 (trixie) | 6.12.107-1 | 6.12.101-1 | 2026-08-06 | :white_check_mark: Fixed |
 | Debian | 12 (bookworm) | 6.1.187-1 | 6.1.187-1 | 2026-09-08 | :white_check_mark: Fixed |
 | Proxmox VE | 9 (default) | 7.0.14-19-pve | — | — | :x: Vulnerable |
-| Proxmox VE | 8 (default) | 6.8.12-43-pve | — | — | :x: Vulnerable |
 | NixOS | master | 6.18.52 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
 | NixOS | release-26.05 | 6.18.52 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
 | NixOS | Unstable | 6.18.52 | 6.18.42 | 2026-08-04 | :white_check_mark: Fixed |
@@ -199,17 +198,21 @@ user namespaces enabled exposes the unprivileged local path.
 
 Proxmox ships its own Ubuntu-derived kernels, so Debian's status does not
 carry over; whether a PVE kernel carries the fix tracks its **Ubuntu**
-base. **PVE 9**'s default `proxmox-kernel-7.0` and **PVE 8**'s default
-`proxmox-kernel-6.8` are both still **vulnerable**: neither packaging
-carries a named PPPoE cherry-pick, and Ubuntu's security tracker has not
-yet released a fixed build for the corresponding series — resolute (the
-7.0 base) is marked *pending* and noble (the 6.8 base) is
-*needed*. A PVE 9 build rebased onto a resolute base that names the fix as
-released, or a named Proxmox cherry-pick, will flip PVE 9; the analogous
-signal will flip PVE 8.
+base. **PVE 9**'s default `proxmox-kernel-7.0` is still **vulnerable**:
+the packaging carries no named PPPoE cherry-pick, and Ubuntu's security
+tracker has not yet released a fixed build for resolute (the 7.0 base),
+which is marked *pending*. A PVE 9 build rebased onto a resolute base
+that names the fix as released, or a named Proxmox cherry-pick, will
+flip PVE 9.
 
-PVE 9 and PVE 8 also publish older opt-in / preview kernel series
-(`proxmox-kernel-6.17`, `-6.14`, `-6.11` and the like) that ride equally
+**PVE 8** reached end of life in **August 2026**, before this tracker
+existed and before any fix reached its kernels: its default
+`proxmox-kernel-6.8` and its opt-in series are permanently
+**vulnerable**, and no fix is coming. A host still on PVE 8 should
+upgrade to PVE 9.
+
+PVE 9 also publishes older opt-in / preview kernel series
+(`proxmox-kernel-6.17`, `-6.14` and the like) that ride equally
 unpatched Ubuntu bases; a host booting one of those is vulnerable until it
 moves to a fixed kernel.
 
@@ -498,9 +501,9 @@ readers never need it.
   `pppoe.c` read (above) shows the three frozen branches do not carry the
   fix, so this is not read as a Proxmox fix path.
 - **Proxmox VE** (`~/src/proxmox/pve-kernel`, pve-no-subscription
-  `Packages.gz`): the default series are `proxmox-kernel-7.0` (PVE 9,
-  trixie) and `proxmox-kernel-6.8` (PVE 8, bookworm); *Current kernel*
-  builds are read from pve-no-subscription `Packages.gz`.
+  `Packages.gz`): the default series is `proxmox-kernel-7.0` (PVE 9,
+  trixie); the *Current kernel* build is read from pve-no-subscription
+  `Packages.gz`.
   - PVE 9: the newest published build rebased onto Ubuntu-7.0.0-38.38
     (`origin/master` changelog); its `debian/changelog`
     names no PPPoE cherry-pick of its own. Ubuntu's own packaging
@@ -510,10 +513,11 @@ readers never need it.
     marks resolute's `7.0.0-38.38` *pending*, i.e. not yet released to the
     archive. Vulnerable until Ubuntu marks that build *released* (PVE has
     already rebased onto its source) or PVE names its own cherry-pick.
-  - PVE 8: `origin/bookworm-6.8`'s changelog through `6.8.12-43` names no
-    PPPoE cherry-pick, no `pppoe` patch appears in `patches/kernel/`, and
-    Ubuntu marks the 6.8 (noble) kernel *needed*, so neither path has
-    shipped the fix.
+  - PVE 8 reached end of life in 2026-08 (Proxmox VE FAQ lifecycle
+    table, pve.proxmox.com/wiki/FAQ), before this tracker existed.
+  - `origin/bookworm-6.8`'s changelog named no PPPoE cherry-pick and
+    its `patches/kernel/` held no `pppoe` patch at the final build.
+  - Ubuntu marks the 6.8 (noble) kernel *needed*.
 - **NixOS** (`~/src/nixos/nixpkgs`): `packageAliases.linux_default =
   linux_6_18` at every tracked ref. The `master` and `release-26.05`
   branches bumped to the fixed **6.18.42** on 2026-08-03 (`git log -S` on
