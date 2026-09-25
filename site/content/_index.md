@@ -3,7 +3,7 @@ title: "PPPoEject (CVE-2026-68121) — Linux PPPoE sendmsg use-after-free"
 description: "Linux kernel PPPoE sendmsg stale skb-head use-after-free (CVE-2026-68121, PPPoEject) — an unprivileged local user escalates to root through a device-header-callback skb reallocation, with a public exploit — distro patch status tracker"
 layout: "single"
 date: 2026-09-18
-lastmod: 2026-09-24
+lastmod: 2026-09-25
 cover:
   image: "pppoeject-tracker.png"
   alt: "PPPoEject — Linux kernel PPPoE sendmsg stale skb-head use-after-free tracker"
@@ -36,11 +36,12 @@ cover:
 > carry it, all seven tracked NixOS refs have rebased onto the fixed 6.18
 > build, and all three Amazon Linux 2023 kernel streams have shipped it.
 > Red Hat has now shipped RHEL 8 fixes across its EUS/AUS/E4S streams
-> (RHSA-2026:71329 and companions, covering `kernel-rt` too), but Rocky
-> Linux 8 has not yet rebuilt past the fixed NVR. **Proxmox VE 9, Rocky
-> Linux 8, and the RHEL 9 / 10 family are still vulnerable** at the time
-> of writing — Red Hat has no fix yet for RHEL 9's or RHEL 10's current
-> stream. Treat any host where an unprivileged user or a
+> (RHSA-2026:71329 and companions, covering `kernel-rt` too) and a fix
+> for RHEL 10's current 10.2 stream (RHSA-2026:71602), but Rocky Linux
+> has not yet rebuilt past either fixed NVR. **Proxmox VE 9, Rocky Linux
+> 8, Rocky Linux 10, and the RHEL 9 family are still vulnerable** at the
+> time of writing — Red Hat has no fix yet for RHEL 9's current stream.
+> Treat any host where an unprivileged user or a
 > container can reach `CAP_NET_ADMIN` in a namespace as directly exposed,
 > and apply the mitigations below until a
 > patched kernel is available.
@@ -112,9 +113,10 @@ stable branch, which was cut after the fix had already landed. Debian's
 **sid**, **forky**, **trixie**, and **bookworm** have rebased onto it, all
 seven tracked NixOS refs default to the fixed 6.18 build, and all three
 Amazon Linux 2023 kernel streams have shipped it. Red Hat has shipped
-RHSAs fixing RHEL 8's kernel across its EUS/AUS/E4S streams, but
-**Proxmox VE 9**, **Rocky Linux 8** (awaiting its rebuild), and the
-**RHEL 9 / 10** family remain **Vulnerable**.
+RHSAs fixing RHEL 8's kernel across its EUS/AUS/E4S streams and RHEL
+10's current 10.2 stream, but **Proxmox VE 9**, **Rocky Linux 8** and
+**Rocky Linux 10** (both awaiting their rebuilds), and the **RHEL 9**
+family remain **Vulnerable**.
 
 The first group is the upstream kernel; the rest are a focused set of
 x86-64 distributions, with per-distribution detail in the sections that
@@ -144,8 +146,8 @@ until a row is fixed.
 | NixOS | Unstable (nixpkgs) | 6.18.53 | 6.18.42 | 2026-08-08 | :white_check_mark: Fixed |
 | NixOS | 26.05 | 6.18.53 | 6.18.42 | 2026-08-05 | :white_check_mark: Fixed |
 | NixOS | 26.05 (small) | 6.18.53 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
-| Rocky Linux / RHEL | 10 | 6.12.0-211.58.1.el10_2 | — | — | :x: Vulnerable — no RHSA yet |
-| Rocky Linux / RHEL | 9 | 5.14.0-687.49.1.el9_8 | — | — | :x: Vulnerable — no RHSA yet |
+| Rocky Linux / RHEL | 10 | 6.12.0-211.58.1.el10_2 | — | — | :x: Vulnerable — RHSA-2026:71602 released, Rocky rebuild pending |
+| Rocky Linux / RHEL | 9 | 5.14.0-687.50.1.el9_8 | — | — | :x: Vulnerable — no RHSA yet |
 | Rocky Linux / RHEL | 8 | 4.18.0-553.166.1.el8_10 | — | — | :x: Vulnerable — RHSA-2026:71329 released, Rocky rebuild pending |
 | Amazon Linux | 2023 (default) | 6.1.186-228.376 | 6.1.186-228.374 | 2026-09-14 | :white_check_mark: Fixed — ALAS2023-2026-2143 |
 | Amazon Linux | 2023 (6.12 opt-in) | 6.12.103-129.197 | 6.12.103-127.188 | 2026-08-31 | :white_check_mark: Fixed — ALAS2023-2026-2110 |
@@ -250,20 +252,22 @@ has already rebuilt the 8.10 fix. **Rocky Linux 8's published BaseOS
 kernel has not yet caught up** to the fixed build, so it remains
 vulnerable until Rocky ships a build past it.
 
-**RHEL 9 and RHEL 10's current streams still have no fix.** Red Hat's
-only RHEL 9 fix so far covers just a legacy extended-support stream, not
-the current release Rocky 9 tracks — so Rocky 9 stays vulnerable. RHEL 10
-has no RHSA at all yet. Rocky rebuilds RHEL unchanged, so its status
-tracks Red Hat's; Oracle Linux and CloudLinux track the RHEL
-determination.
+**RHEL 9's current stream still has no fix; RHEL 10's does, but Rocky
+hasn't rebuilt it yet.** Red Hat's RHEL 9 fixes so far cover only legacy
+extended-support streams (9.2, 9.4, 9.6), not the current release Rocky 9
+tracks — so Rocky 9 stays vulnerable. RHEL 10.2, the release Rocky 10
+tracks, is fixed by RHSA-2026:71602, but **Rocky Linux 10's published
+BaseOS kernel has not yet caught up** to that build, so it remains
+vulnerable too. Rocky rebuilds RHEL unchanged, so its status tracks Red
+Hat's; Oracle Linux and CloudLinux track the RHEL determination.
 
 Unlike some kernel CVEs, this bug has **no not-affected EL base**: the
 flaw predates git history, so even EL8's 4.18 kernel is in-window. Red
 Hat rates the flaw **Moderate**, scoring the integrity impact lower than
 the demonstrated local-root exploit (`I:L` versus the CNA's `I:H`).
-Because RHEL 9 and 10 still have no fix, and Rocky 8 has not yet rebuilt
-the RHEL 8 fix, the practical response on EL hosts other than a rebuilt
-RHEL 8 is the mitigations below.
+Because RHEL 9's current stream still has no fix, and Rocky has not yet
+rebuilt either the RHEL 8 or RHEL 10 fix, the practical response on EL
+hosts other than a rebuilt RHEL 8 is the mitigations below.
 
 ### Amazon Linux
 
@@ -404,12 +408,13 @@ reachable surface but leaves a trusted-but-hostile caller in scope.
   Amazon Linux 2023 have adopted it, but both Proxmox VE releases and the
   Rocky Linux / RHEL family are still vulnerable. Check the *First fixed*
   column, not the kernel's age.
-- **RHEL 9 and 10 still have no fix; Rocky 8 hasn't rebuilt yet.** Red Hat
-  has shipped RHEL 8 fixes (RHSA-2026:71329 and companions, including
-  `kernel-rt`), but Rocky Linux 8 has not yet published a build past the
-  fixed NVR, and RHEL 9 / 10's current streams have no RHSA at all — EL
-  hosts on any of these should rely on the mitigations rather than waiting
-  for an erratum.
+- **RHEL 9 still has no fix; Rocky 8 and Rocky 10 haven't rebuilt yet.**
+  Red Hat has shipped fixes for RHEL 8 (RHSA-2026:71329 and companions,
+  including `kernel-rt`) and for RHEL 10's current 10.2 stream
+  (RHSA-2026:71602), but Rocky Linux 8 and Rocky Linux 10 have not yet
+  published builds past those fixed NVRs, and RHEL 9's current stream has
+  no RHSA at all — EL hosts on any of these should rely on the
+  mitigations rather than waiting for an erratum.
 - **Part of a set of four.** PPPoEject was disclosed alongside
   [DirtyAH6](https://kimmo.cloud/dirtyah6/),
   [TUNderflow](https://kimmo.cloud/tunderflow/), and
@@ -542,7 +547,7 @@ readers never need it.
   channels via their `git-revision` pins).
 - **Rocky / RHEL family** (Red Hat CSAF/VEX,
   `security.access.redhat.com/data/csaf/v2/vex/2026/cve-2026-68121.json`,
-  current revision 3 / 2026-09-24):
+  current revision 3 / 2026-09-25):
   - RHEL 8.10 (MAIN EUS) `kernel` is fixed by RHSA-2026:71329
     (`4.18.0-553.168.1.el8_10`).
   - RHEL 8.10 `kernel-rt` is fixed by RHSA-2026:71330
@@ -550,20 +555,30 @@ readers never need it.
     "Will not fix" determination.
   - RHEL 8.4 (AUS), 8.6 (AUS), and 8.8 (E4S/TUS) are fixed by
     RHSA-2026:71565, RHSA-2026:71592, and RHSA-2026:71594 respectively.
-  - RHEL 9.2 (E4S, a legacy extended-support stream, not the current
-    release Rocky 9 tracks) is fixed by RHSA-2026:71601
-    (`5.14.0-284.194.1.el9_2`).
-  - RHEL 9's and RHEL 10's current streams remain `known_affected` /
-    `none_available`; RHEL 6/7 remain `known_affected` too but are EOL
-    and untracked.
-  - OSV's `related` field lists `ALSA-2026:71329` and `ALSA-2026:71330`,
-    confirming AlmaLinux has rebuilt the RHEL 8.10 fix.
+  - RHEL 9.2 (E4S) is fixed by RHSA-2026:71601
+    (`5.14.0-284.194.1.el9_2`); its NFV `kernel-rt` (E4S) is fixed by
+    RHSA-2026:71606 (`5.14.0-284.194.1.rt14.479.el9_2`).
+  - RHEL 9.4 (E4S) is fixed by RHSA-2026:71569; RHEL 9.6 (EUS) is fixed
+    by RHSA-2026:71631 (`5.14.0-570.144.1.el9_6`) — all three are legacy
+    extended-support streams, not the current release Rocky 9 tracks.
+  - RHEL 10.0 (E2S) is fixed by RHSA-2026:71599
+    (`6.12.0-55.107.1.el10_0`). RHEL 10.2 — the current stream Rocky 10
+    tracks — is fixed by RHSA-2026:71602 (`6.12.0-211.60.1.el10_2`),
+    covering AppStream/BaseOS/CRB/NFV/RT.
+  - RHEL 9's current (non-EUS/E4S) stream remains `known_affected` /
+    `none_available`. RHEL 6 ELS (RHSA-2026:71649) and RHEL 7 ELS/RT-ELS
+    (RHSA-2026:71657, RHSA-2026:71687) are fixed too, but EL6/7 are EOL
+    and untracked here.
+  - OSV's `related` field still lists only `ALSA-2026:71329` and
+    `ALSA-2026:71330` — AlmaLinux has rebuilt the RHEL 8.10 fix but not
+    yet the RHEL 10.2 fix.
   - The Rocky rows' *Current kernel* NVRs are read from BaseOS repodata
-    (`primary.xml.gz`, highest `rel` via `rpmsort`).
+    (`primary.xml.gz`, highest `rel` via `rpmsort`): Rocky 8
+    `4.18.0-553.166.1.el8_10`, Rocky 9 `5.14.0-687.50.1.el9_8`, Rocky 10
+    `6.12.0-211.58.1.el10_2` — all below their respective fixed NVRs.
   - An `other.xml.gz` changelog query for `CVE-2026-68121` against
-    Rocky 8's newest published build (`4.18.0-553.166.1.el8_10`) and
-    Rocky 10's (`6.12.0-211.58.1.el10_2`) found no hit on either —
-    neither has shipped the fix yet.
+    Rocky 9's and Rocky 10's newest published builds found no hit on
+    either — neither has shipped the fix yet.
 - **Amazon Linux** (AL2023 `updateinfo.xml.gz` / `primary.xml.gz`,
   `x86_64` mirror, via `scripts/alas-cve`): CVE-2026-68121 appears in
   three advisories — **ALAS2023-2026-2143** (Important, 2026-09-14) fixing
