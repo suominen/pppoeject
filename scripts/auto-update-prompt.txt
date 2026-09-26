@@ -159,8 +159,11 @@ leave behind is the edited tracker (and its commit).
    polls). Proxmox kernels are Ubuntu-derived, so their fix can arrive
    silently inside an "update sources to Ubuntu-<base>" rebase — cross-check
    the Ubuntu CVE tracker (ubuntu.com/security/cves/CVE-2026-68121.json),
-   not just a named cherry-pick. For each row, re-pull the KERNEL version
-   and check for the backport:
+   not just a named cherry-pick. ubuntu.com intermittently stalls and
+   answers 504: fetch with `curl -fsSL --retry 4 --retry-all-errors
+   --retry-delay 10 -m 45`; ubuntu.com/security/cves.json?q=CVE-2026-68121
+   returns the same record under .cves[] as an alternate. For each row,
+   re-pull the KERNEL version and check for the backport:
       - Debian: the SECURITY TRACKER is authoritative for status, not a
         madison version compare — the base suite lags the -security upload,
         and Debian backports below the upstream first-fixed release. WebFetch

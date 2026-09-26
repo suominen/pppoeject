@@ -774,7 +774,17 @@ On every run, for each live in-window series, take the newest `update
 sources to Ubuntu-*` base from the changelog and compare it against
 Ubuntu's fixed version for that series in the Ubuntu CVE tracker
 (`https://ubuntu.com/security/cves/CVE-2026-68121.json` — the
-`packages[].statuses[]` entries; `released` + version).  Base ≥ Ubuntu's
+`packages[].statuses[]` entries; `released` + version).  ubuntu.com
+intermittently stalls for 20–30 s and then answers 504, so fetch it with a
+per-attempt timeout and retries rather than giving up on the first error:
+
+```
+curl -fsSL --retry 4 --retry-all-errors --retry-delay 10 -m 45 'https://ubuntu.com/security/cves/CVE-2026-68121.json' | jq '.packages[] | select(.name == "linux") | .statuses[]'
+```
+
+The search endpoint `https://ubuntu.com/security/cves.json?q=CVE-2026-68121`
+returns the same record under `.cves[]` (select the exact `id`) and is an
+alternate when the per-CVE URL keeps failing.  Base ≥ Ubuntu's
 fixed version ⇒ the PVE build carries the fix.  Prove it rather than
 trusting the version compare: the Ubuntu build's changelog at
 `https://changelogs.ubuntu.com/changelogs/pool/main/l/linux/linux_<ver>/changelog`
