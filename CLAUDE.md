@@ -64,7 +64,7 @@ unpatched kernel is `:x:` regardless of a host's user-namespace posture.
 
 Two CVSS vantages exist, both **local** (`AV:L`).  The kernel CNA scores
 it CVSS 3.1 **7.8 HIGH** (`…/C:H/I:H/A:H`); Red Hat scores it **7.3 HIGH**
-(`…/C:H/I:L/A:H`, impact Moderate), differing on the integrity metric.
+(`…/C:H/I:L/A:H`, impact Important), differing on the integrity metric.
 Both belong in the Summary / the `#### Scoring` verification-log subsection.
 
 PPPoEject is one of **four** local-root kernel bugs disclosed together on
@@ -900,9 +900,9 @@ is the unhashed `repodata/primary.xml.gz`.
   whatever is asked, so neither is a usable date source.  OSV lists the
   ALSA when AlmaLinux ships first.
 
-  **Positive changelog cross-check (gated).**  Red Hat rates this CVE
-  Moderate impact and may defer the fix for months, so the VEX can stay
-  `none_available` while the shipped kernel is what actually matters —
+  **Positive changelog cross-check (gated).**  Red Hat can defer a
+  kernel fix for months, so the VEX can stay `none_available` while the
+  shipped kernel is what actually matters —
   the backport lands in the kernel RPM `%changelog` before, or without,
   a `vendor_fix` ever appearing, so don't rely on the VEX alone for the
   flip.  **Guardrail:** *Current kernel* is pulled from `primary.xml.gz`

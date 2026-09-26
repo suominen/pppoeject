@@ -25,7 +25,7 @@ cover:
 | Discoverer | Asim Manizada ([@manizada](https://github.com/manizada)) — research, fix, and public exploit |
 | Public disclosure | 2026-09-18 ([oss-security][oss], after a linux-distros embargo; reported to `security@kernel.org` mid-July 2026). CVE published by the kernel CNA 2026-08-10 |
 | Public PoC | **Yes — a complete working exploit.** [`manizada/PPPoEject`][poc] ships `pppoeject_root_repro.py`, escalating an unprivileged user to a root shell; the author reports it targeting Fedora 44 and Ubuntu 24.04 |
-| KEV / EPSS / CVSS | Kernel CNA **CVSS 3.1 7.8 HIGH** (`AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H`); Red Hat scores it **7.3 HIGH** (`…/C:H/I:L/A:H`, impact Moderate), differing on the integrity metric. NVD carries the CNA score (status *Received*, no independent analysis yet). Not in KEV; EPSS **~0.14%**. See *Scoring* below |
+| KEV / EPSS / CVSS | Kernel CNA **CVSS 3.1 7.8 HIGH** (`AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H`); Red Hat scores it **7.3 HIGH** (`…/C:H/I:L/A:H`, impact Important), differing on the integrity metric. NVD carries the CNA score (status *Received*, no independent analysis yet). Not in KEV; EPSS **~0.14%**. See *Scoring* below |
 | Related | One of four local-root kernel bugs disclosed together on 2026-09-18: [DirtyAH6 (CVE-2026-80844)](https://kimmo.cloud/dirtyah6/), [TUNderflow (CVE-2026-81000)](https://kimmo.cloud/tunderflow/), and [DiagSpill (CVE-2026-74469)](https://kimmo.cloud/diagspill/) |
 {.summary}
 
@@ -262,8 +262,9 @@ Oracle Linux and CloudLinux track the RHEL determination.
 
 Unlike some kernel CVEs, this bug has **no not-affected EL base**: the
 flaw predates git history, so even EL8's 4.18 kernel is in-window. Red
-Hat rates the flaw **Moderate**, scoring the integrity impact lower than
-the demonstrated local-root exploit (`I:L` versus the CNA's `I:H`). With
+Hat rates the flaw **Important**, though its CVSS scores the integrity
+impact lower than the demonstrated local-root exploit (`I:L` versus the
+CNA's `I:H`). With
 Rocky Linux 8, 9, and 10 all fixed, the EL family is clear across the
 tracked releases.
 
@@ -469,8 +470,8 @@ readers never need it.
   privilege and the team/GRE topology is reachable with `CAP_NET_ADMIN`
   in an unprivileged user namespace.
 - **Red Hat** (CSAF/VEX, initial release 2026-08-10, current revision 3 /
-  2026-09-24): CVSS 3.1 **7.3 HIGH** (`AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:H`),
-  impact **Moderate** — the same local vantage, scoring integrity `I:L`
+  2026-09-25): CVSS 3.1 **7.3 HIGH** (`AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:H`),
+  impact **Important** — the same local vantage, scoring integrity `I:L`
   rather than the CNA's `I:H`. Per-stream remediation status is in
   *Distributions* below.
 - **NVD / EPSS / KEV**: NVD record status *Received* (its CVSS 3.1 mirrors
