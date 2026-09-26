@@ -147,7 +147,7 @@ subsystem-tree swap was needed.
   open exposure is entirely at the distribution layer (Proxmox VE 8/9,
   Rocky/RHEL).
 - **Automated maintenance:** a user-level systemd timer
-  (`systemd/pppoeject-tracker-update.timer`, twice daily) runs
+  (`systemd/pppoeject-tracker-update.timer`, daily) runs
   `scripts/auto-update`, which merges `origin/main` into a dedicated
   long-lived `auto-update` branch in a separate worktree and hands off to
   headless Claude with `scripts/auto-update-prompt.txt`.  The agent only

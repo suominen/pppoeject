@@ -16,8 +16,8 @@ patch status — belongs to the tracker page, not to this README:
 Edit that file; everything else in this repo is build infrastructure.
 
 None of it is restated here on purpose.  The tracker page is revised as
-distributions ship fixes — for the actively updated trackers, twice daily by
-the auto-update agent — so any copy kept in this README would silently rot.
+distributions ship fixes — for the actively updated trackers, daily by the
+auto-update agent — so any copy kept in this README would silently rot.
 Resist re-adding a summary.
 
 Deployment plan and current setup state live in

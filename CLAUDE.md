@@ -114,7 +114,7 @@ follow `~/src/cve-tracker-template/LIFECYCLE.md` § "Retiring a tracker".
 ├── tests/                                    # helper tests: `make check`
 ├── systemd/                                  # user-level timer + service units
 │   ├── pppoeject-tracker-update.service    # runs scripts/auto-update
-│   └── pppoeject-tracker-update.timer      # twice daily
+│   └── pppoeject-tracker-update.timer      # daily
 ├── flake.nix, .envrc                         # Nix dev shell: hugo + go + git
 ├── Makefile                                  # `make build`, `make dist`, `make check`, `make banner`
 ├── LICENSE                                   # CC BY 4.0
@@ -514,10 +514,12 @@ systemctl --user daemon-reload
 systemctl --user enable --now pppoeject-tracker-update.timer
 ```
 
-The timer fires at `06,18:50` — staggered from the sibling trackers so the
-shared `~/src/linux/*` clones are not fetched simultaneously.  Verify the
-live set with `systemctl --user list-timers | grep tracker` — this in-doc
-list has gone stale before, and three companion trackers (DirtyAH6,
+The timer fires daily at `06:50` (mornings only: the one open row,
+Proxmox VE 9, waits on an Ubuntu kernel release) — staggered from the
+sibling trackers so the shared `~/src/linux/*` clones are not fetched
+simultaneously.  Verify the live set with
+`systemctl --user list-timers | grep tracker` — this in-doc list has gone
+stale before, and three companion trackers (DirtyAH6,
 TUNderflow, DiagSpill) were seeded the same day and take their own slots.
 
 ## Tearing down the auto-update
