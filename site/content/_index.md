@@ -156,17 +156,11 @@ until a row is fixed.
 
 ### Linux kernel
 
-The fix reached Linus in **v7.2-rc5** (tagged 2026-07-26). It was
-backported the same day it was authored to every maintained stable line,
-and the releases followed in two batches: **7.1.6**, **6.18.42**,
-**6.12.101**, and **6.6.148** on 2026-08-03, then **6.1.183**,
-**5.15.216**, and **5.10.265** on 2026-08-19. A new **7.2.x** stable
-branch was later cut from **v7.2** (2026-08-16), which already contained
-the fix — so every 7.2.x release carries it. The **7.1.y** line has since
-reached end-of-life at **7.1.13**, but every release from 7.1.6 onward
-carries the fix, so a host pinned to 7.1.y stays fixed. Every maintained
-upstream branch is now fixed; the remaining exposure is entirely at the
-distribution layer.
+The fix reached mainline in **v7.2-rc5** and has been backported to every
+maintained stable line.
+
+**7.1.x is end of life.** Every release from 7.1.6 on carries the fix,
+but the line gets no further updates — move to 7.2.x or a long-term line.
 
 To confirm a tree directly, the fix adds a single `ph = pppoe_hdr(skb);`
 reload after the `dev_hard_header(skb, dev, ETH_P_PPP_SES, …)` call in
@@ -175,109 +169,91 @@ unpatched.
 
 ### Debian
 
-Debian's status splits on which upstream branch each suite tracks. **sid**
-reached the fix with the `7.1.6-1` upload (7.1.6 is the 7.1 line's
-first-fixed release), first seen in the archive 2026-08-04, and has since
-moved on to the 7.2 line — still **fixed**. **forky** (testing, the future
-Debian 14) reached the fix on the 7.1 line: it migrated onto a fixed 7.1
-kernel on 2026-08-17, so it is **fixed** too.
+**bullseye (Debian 11) left LTS support on 2026-08-31** and no longer
+gets security updates. Its last kernel is unpatched — upgrade to bookworm
+or trixie.
 
-**trixie** (Debian 13) rides the 6.12 line and shipped `6.12.101-1` — its
-line's first-fixed release — as a `trixie-security` update, so it is
-**fixed**; the security tracker records the fix. **bookworm** (Debian 12,
-the 6.1 line) is **fixed** too: `bookworm-security` published `6.1.187-1`,
-repackaging the upstream `6.1.187` release, past the line's `6.1.183`
-first fix, first seen in the archive 2026-09-08.
-
-**bullseye** (Debian 11) reached the end of its LTS window on 2026-08-31
-and has dropped out of Debian's active security support — it no longer
-appears in the security tracker or the archive's package index, so no DSA
-for this CVE will reach it. Its last published kernel remains unpatched;
-the only way out for a host still on it is to upgrade to a supported
-release (bookworm or trixie).
-
-The `pppoe`, `team`, and `bonding` modules Debian ships autoload on demand
-and are not blacklisted by default, so a Debian host with unprivileged
-user namespaces enabled exposes the unprivileged local path.
+The `pppoe`, `team`, and `bonding` modules Debian ships autoload on
+demand and are not blacklisted by default, so a Debian host with
+unprivileged user namespaces enabled exposes the unprivileged local path.
 
 ### Proxmox VE
 
 Proxmox ships its own Ubuntu-derived kernels, so Debian's status does not
-carry over; whether a PVE kernel carries the fix tracks its **Ubuntu**
-base. **PVE 9**'s default `proxmox-kernel-7.0` is still **vulnerable**:
-the packaging carries no named PPPoE cherry-pick, and Ubuntu's security
-tracker has not yet released a fixed build for resolute (the 7.0 base),
-which is marked *pending*. A PVE 9 build rebased onto a resolute base
-that names the fix as released, or a named Proxmox cherry-pick, will
-flip PVE 9.
+carry over. PVE 9's default `proxmox-kernel-7.0` will get the fix either
+from its Ubuntu base, once Ubuntu releases a fixed `linux` for resolute
+(the 7.0 base), or from a Proxmox cherry-pick.
 
-**PVE 8** reached end of life in **August 2026**, before this tracker
-existed and before any fix reached its kernels: its default
-`proxmox-kernel-6.8` and its opt-in series are permanently
-**vulnerable**, and no fix is coming. A host still on PVE 8 should
-upgrade to PVE 9.
-
-PVE 9 also publishes older opt-in / preview kernel series
-(`proxmox-kernel-6.17`, `-6.14` and the like) that ride equally
-unpatched Ubuntu bases; a host booting one of those is vulnerable until it
-moves to a fixed kernel.
+- **PVE 8 reached end of life in August 2026**, before any fix reached
+  its kernels. Its default `proxmox-kernel-6.8` and its opt-in series
+  stay vulnerable, and no fix is coming — upgrade to PVE 9.
+- **Superseded series** that PVE 9 still publishes, such as
+  `proxmox-kernel-6.17` and `proxmox-kernel-6.14`, ride unpatched Ubuntu
+  bases and will not get the fix. A host booting one should move to the
+  default kernel once that is fixed.
 
 ### NixOS
 
-Every tracked ref's default `linuxPackages` is `linux_6_18`. The 6.18.y
-line has a fixed release (6.18.42), and the nixpkgs `master` and
-`release-26.05` branches picked it up on 2026-08-03 — both are **fixed**.
-The five republishing channels have all picked up the fix as well, each
-once its Hydra jobset passed: `nixos-unstable-small` and `nixos-26.05-small`
-first (the `-small` channels ride a reduced jobset and typically lead),
-then `nixos-unstable`, `nixos-26.05`, and `nixpkgs-unstable`. Every tracked
-NixOS ref is now **fixed**. The `nixpkgs-unstable` channel — what a bare
-`nixpkgs` flake registry input resolves to — is a separate channel aimed
-at Nix users on other operating systems.
+Every NixOS channel and branch in the table defaults to
+`linux_6_18` (`linuxPackages`), which carries the fix.
+A host that overrides
+`boot.kernelPackages` to an older series (`linux_6_1` / `linux_5_15` /
+`linux_5_10`) is fixed only if that series is at or past its own
+first-fixed release.
 
-A host that overrides `boot.kernelPackages` to an older series
-(`linux_6_1` / `linux_5_15` / `linux_5_10`) is fixed only if that series
-is at or past its own first-fixed release; the tracked default is the
-fixed 6.18 build.
+Kernel updates land on nixpkgs `master` first and reach each channel
+once its Hydra jobset passes, so a channel can sit a few days behind
+`master`. The `-small` channels (`nixos-unstable-small`,
+`nixos-26.05-small`) run a reduced jobset and pick up kernel updates
+fastest.
+
+Which ref a flake input follows:
+
+- `github:NixOS/nixpkgs/nixos-unstable` and
+  `github:NixOS/nixpkgs/nixos-26.05` follow those channels — the GitHub
+  channel branches are updated to exactly the published channel pins.
+- A bare `github:NixOS/nixpkgs` with no ref follows `master`, and
+  `github:NixOS/nixpkgs/release-26.05` follows that branch. Both are
+  ungated development branches — they carry a kernel bump as soon as it
+  lands, often a day or more before a channel publishes it.
+- A bare `nixpkgs` registry input resolves by default to
+  the `nixpkgs-unstable` channel: a separate channel aimed at
+  Nix on other operating systems, not gated on the NixOS tests.
 
 ### Rocky Linux / RHEL family
 
 RHEL-family kernels are long-lived forks that carry the vulnerable PPPoE
-code. Red Hat's CVE record (CSAF/VEX, initial release 2026-08-10) ships
-fixes for **RHEL 8**: RHSA-2026:71329 fixes the current 8.10 kernel,
-with companion advisories for the 8.4, 8.6, and 8.8 extended-support
-streams, and RHSA-2026:71330 fixes the `kernel-rt` real-time kernel that
-had earlier been flagged "Will not fix." AlmaLinux and **Rocky Linux 8**
-have both rebuilt the 8.10 fix, so **Rocky Linux 8 is fixed**.
+code; the flaw predates git history, so even EL8's 4.18 kernel is
+in-window.
 
-**RHEL 9's current stream and RHEL 10's current stream both have fixes,
-and Rocky has now rebuilt both.** RHSA-2026:71700 fixes RHEL 9.8, the
-release Rocky 9 tracks — Red Hat's earlier RHEL 9 fixes covered only
-legacy extended-support streams (9.2, 9.4, 9.6). RHSA-2026:71602 fixes
-RHEL 10.2, the release Rocky 10 tracks. Rocky Linux 9's and Rocky
-Linux 10's published BaseOS kernels have each caught up to their
-respective fixed builds, so **Rocky Linux 9 and Rocky Linux 10 are
-fixed**. Rocky rebuilds RHEL unchanged, so its status tracks Red Hat's;
-Oracle Linux and CloudLinux track the RHEL determination.
+Red Hat advisories beyond the current minor-release kernels in the table:
 
-Unlike some kernel CVEs, this bug has **no not-affected EL base**: the
-flaw predates git history, so even EL8's 4.18 kernel is in-window. Red
-Hat rates the flaw **Important**, though its CVSS scores the integrity
-impact lower than the demonstrated local-root exploit (`I:L` versus the
-CNA's `I:H`). With
-Rocky Linux 8, 9, and 10 all fixed, the EL family is clear across the
-tracked releases.
+- **RHEL 10:** 10.0 E2S RHSA-2026:71599.
+- **RHEL 9:** 9.6 EUS RHSA-2026:71631; 9.4 E4S RHSA-2026:71569;
+  9.2 E4S RHSA-2026:71601 (NFV `kernel-rt` RHSA-2026:71606).
+- **RHEL 8:** 8.10 `kernel-rt` RHSA-2026:71330; 8.8 E4S/TUS
+  RHSA-2026:71594; 8.6 AUS RHSA-2026:71592; 8.4 AUS RHSA-2026:71565.
+- **RHEL 7 ELS:** RHSA-2026:71687 (`kernel-rt` RHSA-2026:71657).
+- **RHEL 6 ELS:** RHSA-2026:71649.
+
+On RHEL 9 and 10 the real-time kernel (`kernel-rt`) is fixed by the
+same advisories as the regular kernel; RHEL 9.2 E4S, 8 and 7 have
+separate `kernel-rt` advisories, listed with the kernel's.
+
+AlmaLinux, CloudLinux and Oracle Linux's Red Hat Compatible Kernel
+rebuild RHEL's kernel, so they get the fix as they rebuild Red Hat's
+advisories.
 
 ### Amazon Linux
 
-Three advisories fixed CVE-2026-68121 across the AL2023 kernel streams:
-**ALAS2023-2026-2143** (2026-09-14) in the default `kernel` stream,
-**ALAS2023-2026-2110** (2026-08-31) in the `kernel6.12` opt-in stream, and
-**ALAS2023-2026-2106** (2026-08-31) in the `kernel6.18` opt-in stream. All
-three are **fixed**. Amazon builds carry their own cherry-picks, so a
-stream can be fixed at a build below its line's upstream first-fixed
-release. Amazon Linux 2 reached end of support on 2026-06-30 and is not
-tracked.
+The three AL2023 streams are the default `kernel` package (6.1 line) and
+the opt-in `kernel6.12` and `kernel6.18` packages. Amazon builds carry
+their own cherry-picks, so a stream can be fixed at a build below its
+line's upstream first-fixed release — judge an AL2023 kernel by its
+ALAS, not its version number.
+
+Amazon Linux 2 reached end of support on 2026-06-30 and gets no fix —
+migrate to AL2023.
 
 ## Detection
 
@@ -565,6 +541,9 @@ readers never need it.
     covering AppStream/BaseOS/CRB/NFV/RT.
   - RHEL 6 ELS (RHSA-2026:71649) and RHEL 7 ELS/RT-ELS (RHSA-2026:71657,
     RHSA-2026:71687) are fixed too, but EL6/7 are EOL and untracked here.
+  - The record still lists RHEL 9 `kernel-rt` as `known_affected`, but
+    RHSA-2026:71700 (9.8), RHSA-2026:71631 (9.6) and RHSA-2026:71569
+    (9.4) also cover the RHEL 9 RT and NFV products.
   - OSV's `related` field still lists only `ALSA-2026:71329` and
     `ALSA-2026:71330` — AlmaLinux has rebuilt the RHEL 8.10 fix but not
     yet the RHEL 9.8 or RHEL 10.2 fix.
