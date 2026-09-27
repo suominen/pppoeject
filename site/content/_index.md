@@ -3,7 +3,7 @@ title: "PPPoEject (CVE-2026-68121) — Linux PPPoE sendmsg use-after-free"
 description: "Linux kernel PPPoE sendmsg stale skb-head use-after-free (CVE-2026-68121, PPPoEject) — an unprivileged local user escalates to root through a device-header-callback skb reallocation, with a public exploit — distro patch status tracker"
 layout: "single"
 date: 2026-09-18
-lastmod: 2026-09-26
+lastmod: 2026-09-27
 cover:
   image: "pppoeject-tracker.png"
   alt: "PPPoEject — Linux kernel PPPoE sendmsg stale skb-head use-after-free tracker"
@@ -25,7 +25,7 @@ cover:
 | Discoverer | Asim Manizada ([@manizada](https://github.com/manizada)) — research, fix, and public exploit |
 | Public disclosure | 2026-09-18 ([oss-security][oss], after a linux-distros embargo; reported to `security@kernel.org` mid-July 2026). CVE published by the kernel CNA 2026-08-10 |
 | Public PoC | **Yes — a complete working exploit.** [`manizada/PPPoEject`][poc] ships `pppoeject_root_repro.py`, escalating an unprivileged user to a root shell; the author reports it targeting Fedora 44 and Ubuntu 24.04 |
-| KEV / EPSS / CVSS | Kernel CNA **CVSS 3.1 7.8 HIGH** (`AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H`); Red Hat scores it **7.3 HIGH** (`…/C:H/I:L/A:H`, impact Important), differing on the integrity metric. NVD carries the CNA score (status *Received*, no independent analysis yet). Not in KEV; EPSS **~0.14%**. See *Scoring* below |
+| KEV / EPSS / CVSS | Kernel CNA **CVSS 3.1 7.8 HIGH** (`AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H`); Red Hat scores it **7.3 HIGH** (`…/C:H/I:L/A:H`, impact Important), differing on the integrity metric. NVD carries the CNA score (status *Received*, no independent analysis yet). Not in KEV; EPSS **~0.30%**. See *Scoring* below |
 | Related | One of four local-root kernel bugs disclosed together on 2026-09-18: [DirtyAH6 (CVE-2026-80844)](https://kimmo.cloud/dirtyah6/), [TUNderflow (CVE-2026-81000)](https://kimmo.cloud/tunderflow/), and [DiagSpill (CVE-2026-74469)](https://kimmo.cloud/diagspill/) |
 {.summary}
 
@@ -134,17 +134,17 @@ until a row is fixed.
 | Linux kernel | 6.1.x | 6.1.188 | 6.1.183 | 2026-08-19 | :white_check_mark: Fixed |
 | Linux kernel | 5.15.x | 5.15.221 | 5.15.216 | 2026-08-19 | :white_check_mark: Fixed |
 | Linux kernel | 5.10.x | 5.10.270 | 5.10.265 | 2026-08-19 | :white_check_mark: Fixed |
-| Debian | sid (unstable) | 7.2.7-1 | 7.1.6-1 | 2026-08-04 | :white_check_mark: Fixed |
+| Debian | sid (unstable) | 7.2.8-1 | 7.1.6-1 | 2026-08-04 | :white_check_mark: Fixed |
 | Debian | forky (testing) | 7.2.6-1 | 7.1.6-1 | 2026-08-17 | :white_check_mark: Fixed |
 | Debian | 13 (trixie) | 6.12.107-1 | 6.12.101-1 | 2026-08-06 | :white_check_mark: Fixed |
 | Debian | 12 (bookworm) | 6.1.187-1 | 6.1.187-1 | 2026-09-08 | :white_check_mark: Fixed |
 | Proxmox VE | 9 (default) | 7.0.14-19-pve | — | — | :x: Vulnerable |
 | NixOS | master | 6.18.54 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
 | NixOS | release-26.05 | 6.18.54 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
-| NixOS | Unstable | 6.18.53 | 6.18.42 | 2026-08-04 | :white_check_mark: Fixed |
+| NixOS | Unstable | 6.18.54 | 6.18.42 | 2026-08-04 | :white_check_mark: Fixed |
 | NixOS | Unstable (small) | 6.18.54 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
 | NixOS | Unstable (nixpkgs) | 6.18.54 | 6.18.42 | 2026-08-08 | :white_check_mark: Fixed |
-| NixOS | 26.05 | 6.18.53 | 6.18.42 | 2026-08-05 | :white_check_mark: Fixed |
+| NixOS | 26.05 | 6.18.54 | 6.18.42 | 2026-08-05 | :white_check_mark: Fixed |
 | NixOS | 26.05 (small) | 6.18.54 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
 | Rocky Linux / RHEL | 10 | 6.12.0-211.60.1.el10_2 | 6.12.0-211.60.1.el10_2 | 2026-09-25 | :white_check_mark: Fixed — RHSA-2026:71602 |
 | Rocky Linux / RHEL | 9 | 5.14.0-687.52.1.el9_8 | 5.14.0-687.52.1.el9_8 | 2026-09-25 | :white_check_mark: Fixed — RHSA-2026:71700 |
@@ -476,7 +476,7 @@ readers never need it.
   *Distributions* below.
 - **NVD / EPSS / KEV**: NVD record status *Received* (its CVSS 3.1 mirrors
   the CNA score rather than an independent assessment); no CWE assigned.
-  EPSS **~0.14%** (~4th percentile, via api.first.org); not in CISA KEV.
+  EPSS **~0.30%** (~20th percentile, via api.first.org); not in CISA KEV.
 
 #### Distributions
 
@@ -519,7 +519,11 @@ readers never need it.
     after dev_hard_header()` subject — but Ubuntu's CVE tracker still
     marks resolute's `7.0.0-38.38` *pending*, i.e. not yet released to the
     archive. Vulnerable until Ubuntu marks that build *released* (PVE has
-    already rebased onto its source) or PVE names its own cherry-pick.
+    already rebased onto its source) or PVE names its own cherry-pick. A
+    newer, still-unpublished `origin/master` commit rebases onto a later
+    resolute base pulling in upstream stable through 7.2.5 (also past the
+    fix), but Ubuntu's tracker does not yet reference that base either, so
+    it changes nothing about the verdict.
   - PVE 8 reached end of life in 2026-08 (Proxmox VE FAQ lifecycle
     table, pve.proxmox.com/wiki/FAQ), before this tracker existed.
   - `origin/bookworm-6.8`'s changelog named no PPPoE cherry-pick and
