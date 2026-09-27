@@ -110,6 +110,7 @@ follow `~/src/cve-tracker-template/LIFECYCLE.md` § "Retiring a tracker".
 │   ├── auto-update                           # wrapper invoked by the systemd timer
 │   ├── auto-update-prompt.txt                # prompt fed to headless Claude
 │   ├── alas-cve                              # CVE -> AL2023 advisories + fixed NVRs
+│   ├── check-shape                           # prose and log size check (`make check`)
 │   └── nixos-first-shipped                   # channel + commit -> first-published date
 ├── tests/                                    # helper tests: `make check`
 ├── systemd/                                  # user-level timer + service units
@@ -406,6 +407,16 @@ multiple facts together into a paragraph-bullet.  Sub-bullets follow the
 table's ordering conventions (releases descending; within a release the
 default kernel first, live opt-in series ascending, then old series
 descending).
+
+**Budget and growth.** A lead names the topic and the source or method
+and stops there — at most four lines, no facts.  A sub-bullet holds one
+fact in at most six lines; if it needs more, it is two facts.  When a
+run learns something new, add or edit a sub-bullet — never extend the
+lead or append a clause to a neighbouring sub-bullet.  Name each pairing
+explicitly (`6daa7f0` on `master`, `38fa3e0` on `bookworm-6.8`) rather
+than relying on the order of an `A / B` list.  `scripts/check-shape`
+(run by `make check`) enforces these limits and the eight-line limit on
+per-distro paragraphs and bullets.
 
 When you re-verify entries, update the section rather than appending a
 line per re-check.  Edit the relevant subsection in place.  Add a new
