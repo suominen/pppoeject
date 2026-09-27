@@ -857,6 +857,13 @@ carry the per-product verdicts and `remediations` the fix state
 (`https://api.osv.dev/v1/vulns/CVE-2026-68121`) — no ALSA at seed.  The RPM
 repodata below gives the current NVR.
 
+A `known_affected` entry does not by itself mean a product is unfixed:
+the record keeps catch-all entries such as
+`red_hat_enterprise_linux_9:kernel-rt` after the fixes ship, and on
+RHEL 9 and 10 the real-time kernel ships in the same RHSA as `kernel`
+(its `vendor_fix` product IDs include `RT-…` / `NFV-…` streams).  Check
+those product IDs before calling a `kernel-rt` stream unfixed.
+
 Both ship `kernel` as an RPM; pull versions straight from repodata
 (`repomd.xml` → the `*-primary.xml.gz` index).  The EL `os/` repos
 accumulate every point release's kernel, so pick the highest build
