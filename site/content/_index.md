@@ -409,12 +409,13 @@ readers never need it.
 - The flaw predates git history: the commit's `Fixes:` tag names
   `1da177e4c3f4` (*Linux-2.6.12-rc2*, 2005), the epoch of the git era, so
   there is no in-window not-affected branch.
-- **CVE-2026-68121** assigned by the kernel CNA (confirmed via `vulns.git`
-  `origin/master`, `cve/published/2026/CVE-2026-68121.{json,dyad,cvss}`;
-  record keys on `e9c238f6fe42fb1b4dba3a578277de32cb487937`, published
-  2026-08-10). The `.dyad` lists a vulnerable:fixed pair for every
-  maintained line: `2.6.12 → 5.10.265`, `→ 5.15.216`, `→ 6.1.183`,
-  `→ 6.6.148`, `→ 6.12.101`, `→ 6.18.42`, `→ 7.1.6`, and `→ 7.2`.
+- **CVE-2026-68121** (via `vulns.git` `origin/master`,
+  `cve/published/2026/CVE-2026-68121.{json,dyad,cvss}`):
+  - Assigned by the kernel CNA, published 2026-08-10.
+  - The record keys on `e9c238f6fe42fb1b4dba3a578277de32cb487937`.
+  - The `.dyad` lists a vulnerable:fixed pair for every maintained line:
+    `2.6.12 → 5.10.265`, `→ 5.15.216`, `→ 6.1.183`, `→ 6.6.148`,
+    `→ 6.12.101`, `→ 6.18.42`, `→ 7.1.6`, and `→ 7.2`.
 - **Stable backports** (subject grep against `~/src/linux/stable`, each
   bounded to the branch's own history):
   - `linux-7.1.y`: `bed4caecd723`, released **7.1.6** (tag date
@@ -439,12 +440,14 @@ readers never need it.
 
 #### Scoring
 
-- **Kernel CNA** (`vulns.git` `.cvss`/`.json`, `origin/master`): CVSS 3.1
-  **7.8 HIGH** (`CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H`). `AV:L`
-  because the trigger is the local `sendmsg()` syscall on a PF_PPPOX
-  socket, not remote reception; `PR:L` because a PPPoE socket needs no
-  privilege and the team/GRE topology is reachable with `CAP_NET_ADMIN`
-  in an unprivileged user namespace.
+- **Kernel CNA** (`vulns.git` `.cvss`/`.json`, `origin/master`):
+  - CVSS 3.1 **7.8 HIGH**
+    (`CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H`).
+  - `AV:L` because the trigger is the local `sendmsg()` syscall on a
+    PF_PPPOX socket, not remote reception.
+  - `PR:L` because a PPPoE socket needs no privilege and the team/GRE
+    topology is reachable with `CAP_NET_ADMIN` in an unprivileged user
+    namespace.
 - **Red Hat** (CSAF/VEX, initial release 2026-08-10, current revision 3 /
   2026-09-25): CVSS 3.1 **7.3 HIGH** (`AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:H`),
   impact **Important** — the same local vantage, scoring integrity `I:L`
@@ -477,104 +480,111 @@ readers never need it.
     `<suite>-security` entries under the tracker's `repositories`; sid's
     and forky's come from ftp-master madison.
 - **Ubuntu** (ubuntu.com/security/cves/CVE-2026-68121.json, used for the
-  Proxmox base): `resolute` *pending* (`7.0.0-38.38` named, not yet
-  released), `jammy` *pending* (`5.15.0-198.208`), `noble`/`focal`
-  *needed*; `bionic`/`xenial`/`trusty` *needed*. The feed's "upstream:
-  released" entry cites `7.2~rc5`, `6.8.y`, `6.17.y`, and `7.0.y`; a direct
-  `pppoe.c` read (above) shows the three frozen branches do not carry the
-  fix, so this is not read as a Proxmox fix path.
-- **Proxmox VE** (`~/src/proxmox/pve-kernel`, pve-no-subscription
-  `Packages.gz`): the default series is `proxmox-kernel-7.0` (PVE 9,
-  trixie); the *Current kernel* build is read from pve-no-subscription
-  `Packages.gz`.
+  Proxmox base):
+  - `resolute` *pending* (`7.0.0-38.38` named, not yet released).
+  - `noble` *needed*.
+  - `jammy` *pending* (`5.15.0-198.208`).
+  - `focal` *needed*; `bionic`/`xenial`/`trusty` *needed*.
+  - The feed's "upstream: released" entry cites `7.2~rc5`, `6.8.y`,
+    `6.17.y`, and `7.0.y`; a direct `pppoe.c` read (above) shows the three
+    frozen branches do not carry the fix, so this is not read as a
+    Proxmox fix path.
+- **Proxmox VE** (`~/src/proxmox/pve-kernel`; pve-no-subscription
+  `Packages.gz`, which also gives the *Current kernel* build):
+  - The default series is `proxmox-kernel-7.0` (PVE 9, trixie).
   - PVE 9: the newest published build rebased onto Ubuntu-7.0.0-38.38
-    (`origin/master` changelog); its `debian/changelog`
-    names no PPPoE cherry-pick of its own. Ubuntu's own packaging
-    changelog for `7.0.0-38.38` (changelogs.ubuntu.com) does carry the fix
-    — it lists `CVE-2026-68121` with the `pppoe: reload header pointer
-    after dev_hard_header()` subject — but Ubuntu's CVE tracker still
-    marks resolute's `7.0.0-38.38` *pending*, i.e. not yet released to the
-    archive. Vulnerable until Ubuntu marks that build *released* (PVE has
-    already rebased onto its source) or PVE names its own cherry-pick. A
-    newer, still-unpublished `origin/master` commit rebases onto a later
-    resolute base pulling in upstream stable through 7.2.5 (also past the
-    fix), but Ubuntu's tracker does not yet reference that base either, so
-    it changes nothing about the verdict.
+    (`origin/master` changelog).
+  - PVE 9's `debian/changelog` names no PPPoE cherry-pick of its own.
+  - Ubuntu's packaging changelog for `7.0.0-38.38`
+    (changelogs.ubuntu.com) carries the fix: it lists `CVE-2026-68121`
+    with the `pppoe: reload header pointer after dev_hard_header()`
+    subject.
+  - Ubuntu's CVE tracker marks resolute's `7.0.0-38.38` *pending*, i.e.
+    not yet released to the archive. PVE 9 stays vulnerable until Ubuntu
+    marks that build *released* or PVE names its own cherry-pick.
+  - A newer, still-unpublished `origin/master` commit rebases onto a
+    later resolute base pulling in upstream stable through 7.2.5 (also
+    past the fix); Ubuntu's tracker does not reference that base either.
   - PVE 8 reached end of life in 2026-08 (Proxmox VE FAQ lifecycle
     table, pve.proxmox.com/wiki/FAQ), before this tracker existed.
   - `origin/bookworm-6.8`'s changelog named no PPPoE cherry-pick and
     its `patches/kernel/` held no `pppoe` patch at the final build.
   - Ubuntu marks the 6.8 (noble) kernel *needed*.
-- **NixOS** (`~/src/nixos/nixpkgs`): `packageAliases.linux_default =
-  linux_6_18` at every tracked ref. The `master` and `release-26.05`
-  branches bumped to the fixed **6.18.42** on 2026-08-03 (`git log -S` on
-  `kernels-org.json`, commits `b658e06342e8` / `33565191d37a`) — both rows
-  are fixed. Each channel's *Fixed since* is resolved via
-  `scripts/nixos-first-shipped <channel> <bump-commit>`:
-  `nixos-unstable-small` 2026-08-03, `nixos-unstable` 2026-08-04,
-  `nixpkgs-unstable` 2026-08-08 (all from the master bump), and
-  `nixos-26.05-small` 2026-08-03, `nixos-26.05` 2026-08-05 (from the
-  release-26.05 bump). Each row's *Current kernel* is the `6.18` version
-  `kernels-org.json` resolves at that ref (branch refs from the clone,
-  channels via their `git-revision` pins).
+- **NixOS** (via `~/src/nixos/nixpkgs`; branch refs from the clone,
+  channels via their `git-revision` pins):
+  - `packageAliases.linux_default = linux_6_18` at every tracked ref.
+  - Each row's *Current kernel* is the `6.18` version `kernels-org.json`
+    resolves at that ref.
+  - `master` bumped to the fixed **6.18.42** on 2026-08-03 in
+    `b658e06342e8` (`git log -S` on `kernels-org.json`).
+  - `release-26.05` bumped to **6.18.42** on 2026-08-03 in
+    `33565191d37a`.
+  - Channel *Fixed since* via
+    `scripts/nixos-first-shipped <channel> <bump-commit>`, from the master
+    bump: `nixos-unstable` 2026-08-04, `nixos-unstable-small` 2026-08-03,
+    `nixpkgs-unstable` 2026-08-08.
+  - From the release-26.05 bump: `nixos-26.05` 2026-08-05,
+    `nixos-26.05-small` 2026-08-03.
 - **Rocky / RHEL family** (Red Hat CSAF/VEX,
   `security.access.redhat.com/data/csaf/v2/vex/2026/cve-2026-68121.json`,
   current revision 3 / 2026-09-25):
+  - RHEL 10.2 — the current stream Rocky 10 tracks — is fixed by
+    RHSA-2026:71602 (`6.12.0-211.60.1.el10_2`), covering
+    AppStream/BaseOS/CRB/NFV/RT.
+  - RHEL 10.0 (E2S) is fixed by RHSA-2026:71599
+    (`6.12.0-55.107.1.el10_0`).
+  - RHEL 9.8 (MAIN EUS) — the current stream Rocky 9 tracks — is fixed
+    by RHSA-2026:71700 (`5.14.0-687.52.1.el9_8`).
+  - RHEL 9.6 (EUS) is fixed by RHSA-2026:71631 (`5.14.0-570.144.1.el9_6`)
+    — a legacy extended-support stream, not the current release Rocky 9
+    tracks.
+  - RHEL 9.4 (E4S) is fixed by RHSA-2026:71569 — likewise a legacy
+    extended-support stream.
+  - RHEL 9.2 (E4S) is fixed by RHSA-2026:71601
+    (`5.14.0-284.194.1.el9_2`); its NFV `kernel-rt` (E4S) is fixed by
+    RHSA-2026:71606 (`5.14.0-284.194.1.rt14.479.el9_2`).
   - RHEL 8.10 (MAIN EUS) `kernel` is fixed by RHSA-2026:71329
     (`4.18.0-553.168.1.el8_10`).
   - RHEL 8.10 `kernel-rt` is fixed by RHSA-2026:71330
     (`4.18.0-553.168.1.rt7.509.el8_10`), superseding the earlier
     "Will not fix" determination.
-  - RHEL 8.4 (AUS), 8.6 (AUS), and 8.8 (E4S/TUS) are fixed by
-    RHSA-2026:71565, RHSA-2026:71592, and RHSA-2026:71594 respectively.
-  - RHEL 9.2 (E4S) is fixed by RHSA-2026:71601
-    (`5.14.0-284.194.1.el9_2`); its NFV `kernel-rt` (E4S) is fixed by
-    RHSA-2026:71606 (`5.14.0-284.194.1.rt14.479.el9_2`).
-  - RHEL 9.4 (E4S) is fixed by RHSA-2026:71569; RHEL 9.6 (EUS) is fixed
-    by RHSA-2026:71631 (`5.14.0-570.144.1.el9_6`) — legacy
-    extended-support streams, not the current release Rocky 9 tracks.
-  - RHEL 9.8 (MAIN EUS) — the current stream Rocky 9 tracks — is fixed
-    by RHSA-2026:71700 (`5.14.0-687.52.1.el9_8`).
-  - RHEL 10.0 (E2S) is fixed by RHSA-2026:71599
-    (`6.12.0-55.107.1.el10_0`). RHEL 10.2 — the current stream Rocky 10
-    tracks — is fixed by RHSA-2026:71602 (`6.12.0-211.60.1.el10_2`),
-    covering AppStream/BaseOS/CRB/NFV/RT.
-  - RHEL 6 ELS (RHSA-2026:71649) and RHEL 7 ELS/RT-ELS (RHSA-2026:71657,
-    RHSA-2026:71687) are fixed too, but EL6/7 are EOL and untracked here.
-  - The record still lists RHEL 9 `kernel-rt` as `known_affected`, but
+  - RHEL 8.8 (E4S/TUS) is fixed by RHSA-2026:71594.
+  - RHEL 8.6 (AUS) is fixed by RHSA-2026:71592.
+  - RHEL 8.4 (AUS) is fixed by RHSA-2026:71565.
+  - RHEL 7 ELS is fixed by RHSA-2026:71687 and RHEL 7 RT-ELS by
+    RHSA-2026:71657; EL7 is EOL and untracked here.
+  - RHEL 6 ELS is fixed by RHSA-2026:71649; EL6 is EOL and untracked
+    here.
+  - The record lists RHEL 9 `kernel-rt` as `known_affected`, but
     RHSA-2026:71700 (9.8), RHSA-2026:71631 (9.6) and RHSA-2026:71569
     (9.4) also cover the RHEL 9 RT and NFV products.
-  - OSV's `related` field still lists only `ALSA-2026:71329` and
+  - OSV's `related` field lists only `ALSA-2026:71329` and
     `ALSA-2026:71330` — AlmaLinux has rebuilt the RHEL 8.10 fix but not
-    yet the RHEL 9.8 or RHEL 10.2 fix.
+    the RHEL 9.8 or RHEL 10.2 fix.
   - Rocky's *Current kernel* NVRs are read from BaseOS repodata
-    (`primary.xml.gz`, highest `rel` via `rpmsort`); Rocky 9 and Rocky 10
-    have each reached their respective fixed NVRs (RHSA-2026:71700,
-    RHSA-2026:71602).
-  - Rocky 8's newest published build reached the fixed NVR named by
-    RHSA-2026:71329, `4.18.0-553.168.1.el8_10`. An `other.xml.gz`
-    changelog query against it confirms the `CVE-2026-68121` entry
-    (author `... [4.18.0-553.168.1.el8_10]`), uploaded 2026-09-24 per the
-    `Packages/k/` directory listing — **Rocky Linux 8 is fixed**.
-  - Rocky 9's newest published build reached `5.14.0-687.52.1.el9_8`, the
-    NVR named by RHSA-2026:71700; the same `other.xml.gz` changelog query
-    confirms the `CVE-2026-68121` entry (author
-    `... [5.14.0-687.52.1.el9_8]`), uploaded 2026-09-25 per the
-    `Packages/k/` directory listing — **Rocky Linux 9 is fixed**.
-  - Rocky 10's newest published build reached `6.12.0-211.60.1.el10_2`,
-    the NVR named by RHSA-2026:71602; the same query confirms the
-    `CVE-2026-68121` entry (author `... [6.12.0-211.60.1.el10_2]`),
-    uploaded 2026-09-25 per the `Packages/k/` directory listing —
-    **Rocky Linux 10 is fixed**.
-- **Amazon Linux** (AL2023 `updateinfo.xml.gz` / `primary.xml.gz`,
-  `x86_64` mirror, via `scripts/alas-cve`): CVE-2026-68121 appears in
-  three advisories — **ALAS2023-2026-2143** (Important, 2026-09-14) fixing
-  the default `kernel` stream at `6.1.186-228.374.amzn2023`,
-  **ALAS2023-2026-2110** (Important, 2026-08-31) fixing `kernel6.12` at
-  `6.12.103-127.188.amzn2023`, and **ALAS2023-2026-2106** (Important,
-  2026-08-31) fixing `kernel6.18` at `6.18.44-99.149.amzn2023`. Per-stream
-  *Current kernel* values are read from `primary.xml.gz` (highest
-  `ver`/`rel`). AL2 is EOL (2026-06-30) and untracked.
+    (`primary.xml.gz`, highest `rel` via `rpmsort`).
+  - Rocky 10 shipped `6.12.0-211.60.1.el10_2`, the NVR
+    named by RHSA-2026:71602; an `other.xml.gz` changelog query confirms
+    the `CVE-2026-68121` entry (author `... [6.12.0-211.60.1.el10_2]`),
+    uploaded 2026-09-25 per the `Packages/k/` directory listing.
+  - Rocky 9 shipped `5.14.0-687.52.1.el9_8`, the NVR named
+    by RHSA-2026:71700; the same query confirms the `CVE-2026-68121`
+    entry (author `... [5.14.0-687.52.1.el9_8]`), uploaded 2026-09-25 per
+    the `Packages/k/` directory listing.
+  - Rocky 8 shipped `4.18.0-553.168.1.el8_10`, the NVR
+    named by RHSA-2026:71329; the same query confirms the
+    `CVE-2026-68121` entry (author `... [4.18.0-553.168.1.el8_10]`),
+    uploaded 2026-09-24 per the `Packages/k/` directory listing.
+- **Amazon Linux** (AL2023 `x86_64` mirror: `updateinfo.xml.gz` via
+  `scripts/alas-cve`; per-stream *Current kernel* from `primary.xml.gz`,
+  highest `ver`/`rel`):
+  - **ALAS2023-2026-2143** (Important, 2026-09-14) fixes the default
+    `kernel` stream at `6.1.186-228.374.amzn2023`.
+  - **ALAS2023-2026-2110** (Important, 2026-08-31) fixes `kernel6.12` at
+    `6.12.103-127.188.amzn2023`.
+  - **ALAS2023-2026-2106** (Important, 2026-08-31) fixes `kernel6.18` at
+    `6.18.44-99.149.amzn2023`.
+  - AL2 is EOL (2026-06-30).
 {{< /details >}}
 
 ## References
