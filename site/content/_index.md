@@ -10,6 +10,11 @@ cover:
   hiddenInSingle: true
 ---
 
+*This tracker is no longer updated.  Every maintained upstream stable
+line carries the fix, as do Debian, Proxmox VE 9's default kernel, every
+tracked NixOS ref, Rocky Linux / RHEL 10, 9 and 8, and all three Amazon
+Linux 2023 kernel streams — install a fixed kernel and reboot into it.*
+
 ## Summary
 
 | Field | Detail |
@@ -30,7 +35,7 @@ cover:
 {.summary}
 
 > :white_check_mark: **A local root exploit is public, and every tracked
-> distribution now ships a fixed kernel.** The fix ships in every maintained
+> distribution ships a fixed kernel.** The fix ships in every maintained
 > upstream stable line (mainline, 7.2, 7.1, 6.18, 6.12, 6.6, 6.1, 5.15,
 > and 5.10). Debian's **sid**, **forky**, **trixie**, and **bookworm**
 > carry it, all seven tracked NixOS refs have rebased onto the fixed 6.18
@@ -38,7 +43,7 @@ cover:
 > Red Hat has shipped fixes for RHEL 8 across its EUS/AUS/E4S
 > streams (RHSA-2026:71329 and companions, covering `kernel-rt` too),
 > for RHEL 9's current 9.8 stream (RHSA-2026:71700), and for RHEL 10's
-> current 10.2 stream (RHSA-2026:71602), and Rocky Linux has now
+> current 10.2 stream (RHSA-2026:71602), and Rocky Linux has
 > rebuilt all three fixes. Proxmox VE 9's default kernel carries the fix
 > through its Ubuntu base. A host is safe only once it has installed a
 > fixed kernel **and rebooted into it**; until then, treat any host where
@@ -114,13 +119,13 @@ seven tracked NixOS refs default to the fixed 6.18 build, and all three
 Amazon Linux 2023 kernel streams have shipped it. Red Hat has shipped
 RHSAs fixing RHEL 8's kernel across its EUS/AUS/E4S streams, RHEL 9's
 current 9.8 stream, and RHEL 10's current 10.2 stream, and Rocky Linux
-has now rebuilt all three fixes. **Proxmox VE 9**'s default kernel carries
+has rebuilt all three fixes. **Proxmox VE 9**'s default kernel carries
 the fix through its Ubuntu base.
 
 The first group is the upstream kernel; the rest are a focused set of
 x86-64 distributions, with per-distribution detail in the sections that
-follow. *Current kernel* is live; *First fixed* and *Fixed since* stay `—`
-until a row is fixed.
+follow. *Current kernel* is each row's newest build when the tracker was
+last updated.
 
 | Distribution | Release | Current kernel | First fixed | Fixed since | Status |
 |---|---|---|---|---|---|
