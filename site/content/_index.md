@@ -29,8 +29,8 @@ cover:
 | Related | One of four local-root kernel bugs disclosed together on 2026-09-18: [DirtyAH6 (CVE-2026-80844)](https://kimmo.cloud/dirtyah6/), [TUNderflow (CVE-2026-81000)](https://kimmo.cloud/tunderflow/), and [DiagSpill (CVE-2026-74469)](https://kimmo.cloud/diagspill/) |
 {.summary}
 
-> :warning: **A local root exploit is public and one tracked
-> distribution is still unpatched.** The fix ships in every maintained
+> :white_check_mark: **A local root exploit is public, and every tracked
+> distribution now ships a fixed kernel.** The fix ships in every maintained
 > upstream stable line (mainline, 7.2, 7.1, 6.18, 6.12, 6.6, 6.1, 5.15,
 > and 5.10). Debian's **sid**, **forky**, **trixie**, and **bookworm**
 > carry it, all seven tracked NixOS refs have rebased onto the fixed 6.18
@@ -39,12 +39,11 @@ cover:
 > streams (RHSA-2026:71329 and companions, covering `kernel-rt` too),
 > for RHEL 9's current 9.8 stream (RHSA-2026:71700), and for RHEL 10's
 > current 10.2 stream (RHSA-2026:71602), and Rocky Linux has now
-> rebuilt all three fixes. **Proxmox VE 9 is the only tracked
-> distribution still vulnerable** at the time of writing. Treat
-> any host where an unprivileged user or a
-> container can reach `CAP_NET_ADMIN` in a namespace as directly exposed,
-> and apply the mitigations below until a
-> patched kernel is available.
+> rebuilt all three fixes. Proxmox VE 9's default kernel carries the fix
+> through its Ubuntu base. A host is safe only once it has installed a
+> fixed kernel **and rebooted into it**; until then, treat any host where
+> an unprivileged user or a container can reach `CAP_NET_ADMIN` in a
+> namespace as directly exposed, and apply the mitigations below.
 
 ## How the exploitation chain works
 
@@ -115,8 +114,8 @@ seven tracked NixOS refs default to the fixed 6.18 build, and all three
 Amazon Linux 2023 kernel streams have shipped it. Red Hat has shipped
 RHSAs fixing RHEL 8's kernel across its EUS/AUS/E4S streams, RHEL 9's
 current 9.8 stream, and RHEL 10's current 10.2 stream, and Rocky Linux
-has now rebuilt all three fixes. **Proxmox VE 9** is the only row that
-remains **Vulnerable**.
+has now rebuilt all three fixes. **Proxmox VE 9**'s default kernel carries
+the fix through its Ubuntu base.
 
 The first group is the upstream kernel; the rest are a focused set of
 x86-64 distributions, with per-distribution detail in the sections that
@@ -138,7 +137,7 @@ until a row is fixed.
 | Debian | forky (testing) | 7.2.6-1 | 7.1.6-1 | 2026-08-17 | :white_check_mark: Fixed |
 | Debian | 13 (trixie) | 6.12.107-1 | 6.12.101-1 | 2026-08-06 | :white_check_mark: Fixed |
 | Debian | 12 (bookworm) | 6.1.187-1 | 6.1.187-1 | 2026-09-08 | :white_check_mark: Fixed |
-| Proxmox VE | 9 (default) | 7.0.14-19-pve | — | — | :x: Vulnerable |
+| Proxmox VE | 9 (default) | 7.0.14-19-pve | 7.0.14-17-pve | 2026-09-11 | :white_check_mark: Fixed — via Ubuntu-7.0.0-38.38 |
 | NixOS | master | 6.18.54 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
 | NixOS | release-26.05 | 6.18.54 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
 | NixOS | Unstable | 6.18.54 | 6.18.42 | 2026-08-04 | :white_check_mark: Fixed |
@@ -180,9 +179,10 @@ unprivileged user namespaces enabled exposes the unprivileged local path.
 ### Proxmox VE
 
 Proxmox ships its own Ubuntu-derived kernels, so Debian's status does not
-carry over. PVE 9's default `proxmox-kernel-7.0` will get the fix either
-from its Ubuntu base, once Ubuntu releases a fixed `linux` for resolute
-(the 7.0 base), or from a Proxmox cherry-pick.
+carry over. PVE 9's default `proxmox-kernel-7.0` is built from Ubuntu's
+resolute (7.0) kernel sources, and its rebase onto `Ubuntu-7.0.0-38.38`
+brought the fix in with that build's upstream stable updates — Proxmox's
+own changelog names no PPPoE fix.
 
 - **PVE 8 reached end of life in August 2026**, before any fix reached
   its kernels. Its default `proxmox-kernel-6.8` and its opt-in series
@@ -190,7 +190,7 @@ from its Ubuntu base, once Ubuntu releases a fixed `linux` for resolute
 - **Superseded series** that PVE 9 still publishes, such as
   `proxmox-kernel-6.17` and `proxmox-kernel-6.14`, ride unpatched Ubuntu
   bases and will not get the fix. A host booting one should move to the
-  default kernel once that is fixed.
+  default `proxmox-kernel-7.0`.
 
 ### NixOS
 
@@ -378,11 +378,11 @@ reachable surface but leaves a trusted-but-hostile caller in scope.
   impact is local privilege escalation to root, so any host where an
   unprivileged user or a container can reach `CAP_NET_ADMIN` and configure
   network devices is directly in scope — a public exploit exists.
-- **Proxmox VE 9 is the last tracked distribution still unpatched.** The
-  fix reaches every maintained upstream stable line, and Debian, all
-  tracked NixOS refs, Amazon Linux 2023, and now the whole Rocky Linux /
-  RHEL family (8, 9, and 10) have adopted it. Check the *First fixed*
-  column, not the kernel's age.
+- **Every tracked distribution ships a fix; unrebooted hosts remain
+  exposed.** The fix reaches every maintained upstream stable line, and
+  Debian, Proxmox VE 9, all tracked NixOS refs, Amazon Linux 2023, and the
+  whole Rocky Linux / RHEL family (8, 9, and 10) have adopted it. Check the
+  running kernel against the *First fixed* column, not the kernel's age.
 - **Part of a set of four.** PPPoEject was disclosed alongside
   [DirtyAH6](https://kimmo.cloud/dirtyah6/),
   [TUNderflow](https://kimmo.cloud/tunderflow/), and
@@ -492,19 +492,24 @@ readers never need it.
 - **Proxmox VE** (`~/src/proxmox/pve-kernel`; pve-no-subscription
   `Packages.gz`, which also gives the *Current kernel* build):
   - The default series is `proxmox-kernel-7.0` (PVE 9, trixie).
-  - PVE 9: the newest published build rebased onto Ubuntu-7.0.0-38.38
-    (`origin/master` changelog).
-  - PVE 9's `debian/changelog` names no PPPoE cherry-pick of its own.
+  - PVE 9's `7.0.14-17` rebased onto `Ubuntu-7.0.0-38.38`
+    (`origin/master` changelog); its `submodules/ubuntu-kernel` pin
+    `740b32353f43` is exactly that tag's commit (`git ls-remote` of
+    Proxmox's `mirror_ubuntu-kernels`).
+  - Builds before `7.0.14-17` sit on `Ubuntu-7.0.0-31.31` or older, with
+    no later Ubuntu rebase and no PPPoE cherry-pick.
+  - PVE 9's `debian/changelog` names no PPPoE cherry-pick of its own;
+    the fix arrives only through the Ubuntu base.
   - Ubuntu's packaging changelog for `7.0.0-38.38`
     (changelogs.ubuntu.com) carries the fix: it lists `CVE-2026-68121`
     with the `pppoe: reload header pointer after dev_hard_header()`
-    subject.
-  - Ubuntu's CVE tracker marks resolute's `7.0.0-38.38` *pending*, i.e.
-    not yet released to the archive. PVE 9 stays vulnerable until Ubuntu
-    marks that build *released* or PVE names its own cherry-pick.
-  - A newer, still-unpublished `origin/master` commit rebases onto a
-    later resolute base pulling in upstream stable through 7.2.5 (also
-    past the fix); Ubuntu's tracker does not reference that base either.
+    subject (stable patchset 2026-08-26, LP: #2165189).
+  - Ubuntu's *pending* status for resolute concerns its own archive, not
+    the source Proxmox builds from, so it does not hold the PVE row back.
+  - `7.0.14-18` rebased onto a later resolute base (upstream stable
+    7.1.8–7.1.13), and `7.0.14-19` keeps that base.
+  - *Fixed since* is the `Last-Modified` of the `7.0.14-17` `.deb` in
+    `pve-no-subscription`.
   - PVE 8 reached end of life in 2026-08 (Proxmox VE FAQ lifecycle
     table, pve.proxmox.com/wiki/FAQ), before this tracker existed.
   - `origin/bookworm-6.8`'s changelog named no PPPoE cherry-pick and

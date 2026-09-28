@@ -319,10 +319,10 @@ Each run:
   for RHEL 8 — that row is not expected to flip; RHEL 9/10 have no fix yet
   (`none_available`) but could still gain an RHSA.  For Proxmox, the fix
   can arrive silently in an `update sources to Ubuntu-*` rebase, so
-  compare the newest Ubuntu base against Ubuntu's fixed version for that
-  series, not just a named cherry-pick.  At seed Ubuntu marks the relevant
-  resolute (7.0) and noble (6.8) kernels *pending* / *needed*, so both PVE
-  defaults are `:x:`.
+  check whether the Ubuntu tag PVE rebased onto carries the fix, not just
+  for a named cherry-pick (recipe under "Proxmox kernel version source").
+  PVE 9 flipped this way: `7.0.14-17` rebased onto `Ubuntu-7.0.0-38.38`,
+  which carries the fix while Ubuntu still called it *pending*.
 
 `zcat` / `gunzip` **are** in the headless allowlist — use them for the
 `Packages.gz` / repodata pulls — as are `grep`, `sort`, `rpmsort`,
@@ -537,8 +537,8 @@ systemctl --user daemon-reload
 systemctl --user enable --now pppoeject-tracker-update.timer
 ```
 
-The timer fires daily at `06:50` (mornings only: the one open row,
-Proxmox VE 9, waits on an Ubuntu kernel release) — staggered from the
+The timer fires daily at `06:50` (mornings only: every row is fixed,
+so only *Current kernel* cells still move) — staggered from the
 sibling trackers so the shared `~/src/linux/*` clones are not fetched
 simultaneously.  Verify the live set with
 `systemctl --user list-timers | grep tracker` — this in-doc list has gone
@@ -776,8 +776,8 @@ curl -fsSL "$url" | zcat | grep -A3 '^Package: proxmox-default-kernel'
 The default kernel *series* is whatever the highest-versioned
 `proxmox-default-kernel` meta-package depends on — check it each time.
 Every PVE series carries the vulnerable PPPoE code and is in-window, so
-each needs the fix to be safe.  At seed the maintained series,
-`proxmox-kernel-7.0` (PVE 9, `7.0.14-17`), is unpatched; PVE 8 is EOL
+each needs the fix to be safe.  The maintained series,
+`proxmox-kernel-7.0` (PVE 9), is fixed from `7.0.14-17` on; PVE 8 is EOL
 and untracked (see above).
 
 **Two sources — only one is authoritative for the version.** The
@@ -799,7 +799,8 @@ On every run, for each live in-window series, take the newest `update
 sources to Ubuntu-*` base from the changelog and compare it against
 Ubuntu's fixed version for that series in the Ubuntu CVE tracker
 (`https://ubuntu.com/security/cves/CVE-2026-68121.json` — the
-`packages[].statuses[]` entries; `released` + version).  ubuntu.com
+`packages[].statuses[]` entries; the version named by a `released`
+**or** `pending` status).  ubuntu.com
 intermittently stalls for 20–30 s and then answers 504, so fetch it with a
 per-attempt timeout and retries rather than giving up on the first error:
 
@@ -816,12 +817,22 @@ trusting the version compare: the Ubuntu build's changelog at
 lists every upstream stable subject it pulled in, so grep it for
 `reload header pointer after dev_hard_header` (Launchpad's git `plain`
 file URLs return 403 headlessly, so the source itself cannot be read
-that way).  At seed Ubuntu marks
-resolute (the 7.0 base) *pending* `7.0.0-38.38` — named but not released —
-and noble (a 6.8 base) *needed*, so neither PVE default carries the fix;
-a *pending* fix is not a released one, so PVE 9 stays `:x:` until the
-resolute build is *released* and PVE rebases onto it (or names a
-cherry-pick).  To confirm a
+that way).  Then confirm PVE really built from that tag: the
+`submodules/ubuntu-kernel` gitlink at the build's `bump version to …`
+commit must equal the tag's peeled commit, from
+`git ls-remote https://git.proxmox.com/git/mirror_ubuntu-kernels.git
+'refs/tags/Ubuntu-<ver>*'` (the `^{}` line).
+
+**Ubuntu's *pending* / *released* status describes Ubuntu's own
+archive, not the source Proxmox compiles.**  Once PVE has rebased onto
+an Ubuntu tag whose changelog names the fix, the published PVE build
+carries it — flip the row to Fixed even while Ubuntu still says
+*pending*.  *First fixed* is the first `pve-no-subscription` build on
+such a base; *Fixed since* is that `.deb`'s `Last-Modified` (HEAD the
+`Filename` from `Packages.gz` under
+`http://download.proxmox.com/debian/pve/`).
+PVE 9 flipped this way at `7.0.14-17` (`Ubuntu-7.0.0-38.38`, published
+2026-09-11).  To confirm a
 cherry-pick, read the packaging changelog / patches in Proxmox's kernel
 git from the shared local clone at `~/src/proxmox/pve-kernel` via its
 `origin/...` refs:
@@ -1115,8 +1126,8 @@ several distro sites are JS-rendered SPAs that don't render via WebFetch.
   is the leading indicator for any future fix.
 - **Debian / Ubuntu / Proxmox VE:** sid/forky (7.1 line), trixie (6.12),
   and bookworm (6.1) are all fixed; bullseye left the tracker (LTS ended
-  2026-08-31).  Both PVE default kernels are in-window and unpatched at
-  seed (Ubuntu resolute/noble bases *pending* / *needed*).
+  2026-08-31).  PVE 9's default `proxmox-kernel-7.0` is fixed from
+  `7.0.14-17` (rebased onto `Ubuntu-7.0.0-38.38`); PVE 8 is EOL.
 - **NixOS:** seven refs are tracked, all defaulting to `linux_6_18`
   (6.18.42+, fixed).  Resolve `linux_default` at each ref separately.
 - **Mitigation vs fix:** disabling unprivileged user namespaces
