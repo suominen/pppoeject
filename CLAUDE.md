@@ -783,7 +783,10 @@ and untracked (see above).
 **Two sources — only one is authoritative for the version.** The
 *Current kernel* column is the `proxmox-kernel-<series>` build published
 in `pve-no-subscription` (read it from the same Packages.gz — the
-per-series package entries, highest `rel`).  The pve-kernel **git
+per-series package entries, highest `rel`), as the package `Version:`
+(`7.0.14-19`) — never with the `-pve` suffix that belongs to package
+names and `uname -r` (`proxmox-kernel-7.0.14-19-pve-signed`,
+`7.0.14-19-pve`).  The pve-kernel **git
 changelog leads apt**, so **never copy a changelog version into *Current
 kernel***; use the git changelog only to confirm a cherry-pick.  If it
 shows the fix cherry-pick in a build `pve-no-subscription` has not yet

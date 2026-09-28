@@ -137,7 +137,7 @@ until a row is fixed.
 | Debian | forky (testing) | 7.2.6-1 | 7.1.6-1 | 2026-08-17 | :white_check_mark: Fixed |
 | Debian | 13 (trixie) | 6.12.107-1 | 6.12.101-1 | 2026-08-06 | :white_check_mark: Fixed |
 | Debian | 12 (bookworm) | 6.1.187-1 | 6.1.187-1 | 2026-09-08 | :white_check_mark: Fixed |
-| Proxmox VE | 9 (default) | 7.0.14-19-pve | 7.0.14-17-pve | 2026-09-11 | :white_check_mark: Fixed — via Ubuntu-7.0.0-38.38 |
+| Proxmox VE | 9 (default) | 7.0.14-19 | 7.0.14-17 | 2026-09-11 | :white_check_mark: Fixed — via Ubuntu-7.0.0-38.38 |
 | NixOS | master | 6.18.54 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
 | NixOS | release-26.05 | 6.18.54 | 6.18.42 | 2026-08-03 | :white_check_mark: Fixed |
 | NixOS | Unstable | 6.18.54 | 6.18.42 | 2026-08-04 | :white_check_mark: Fixed |
